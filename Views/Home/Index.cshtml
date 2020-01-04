@@ -1,0 +1,123 @@
+﻿@{
+	ViewData["Title"] = "Home Page";
+}
+
+
+<div id="my"></div>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+<script src="https://bossanova.uk/jexcel/v3/jexcel.js"></script>
+<link rel="stylesheet" href="https://bossanova.uk/jexcel/v3/jexcel.css" type="text/css" />
+
+<script src="https://bossanova.uk/jsuites/v2/jsuites.js"></script>
+<link rel="stylesheet" href="https://bossanova.uk/jsuites/v2/jsuites.css" type="text/css" />
+
+<script>
+	var serverdata = [];
+	$.ajax({
+		type: "GET",
+		url: "https://localhost:44338/FinanceStatements/GetStatements",
+		dataType: "json",
+		async: false,
+		contentType: 'application/json; charset=utf-8',
+		success: function (data) {
+			serverdata = JSON.parse(data);
+		},
+		error: function () {
+			alert("Error occured!!")
+		}
+	});
+
+
+	var resArr = serverdata.map(function (x) {
+		return Object.keys(x);
+	});
+	var longest = resArr.reduce((a, b) => (a.length > b.length ? a : b), []);
+	var valuearray = serverdata.map(function (x) {
+		return Object.values(x);
+	});
+	var catIndex = longest.indexOf('CATEGORY', 0);
+	//var sortestArr = valuearray;
+
+	//var p = valuearray.map(function (x) {
+		
+	//	if (x.length == 1) {
+			
+	//		var item = x[0];
+	//		var i;
+	//		for ( i = 0; i < longest.length; i++) {
+	//			if (i != catIndex) {
+	//				x[i]= '-';
+	//			}
+	//			else {
+	//				x[i]= item;
+	//			}
+				
+	//		}
+	//		console.log(x);
+			
+			
+	//	}
+	//	return x;
+	//});
+	//valuearray = valuearray.filter(x => x.length > 1);
+	//sortestArr = sortestArr.filter(x => x.length == 1);
+	//sortestArr.forEach(function (element) {
+
+	//	for ( var i = 0; i < longest.length; i++) {
+	//		element.push('-');
+	//	}
+	//});
+	//valuearray.push(sortestArr);
+	//console.log(valuearray);
+	//console.log(sortestArr);
+	debugger;
+	function numberToLetters(nNum) {
+    var result;
+    if (nNum <= 26) {
+        result = letter(nNum);
+    } else {
+        var modulo = nNum % 26;
+        var quotient = Math.floor(nNum / 26);
+        if (modulo === 0) {
+            result = letter(quotient - 1) + letter(26);
+        } else {
+            result = letter(quotient) + letter(modulo);
+        }
+    }
+
+    return result;
+	}
+	var arrNested = [];
+	for (i = 1; i <= longest.length; i++) {
+		arrNested.push({"title":numberToLetters(i) });
+	}
+
+	console.log(arrNested);
+	var mytable=$('#my').jexcel({
+		
+    minDimensions:[13,13],
+  
+		data: valuearray,
+		colHeaders: longest,
+		nestedHeaders: [arrNested]
+
+
+	});
+	
+
+
+function letter(nNum) {
+    var a = "A".charCodeAt(0);
+    return String.fromCharCode(a + nNum - 1);
+}
+	
+	console.log(catIndex);
+	mytable.moveColumn(catIndex, 0);
+	mytable.setWidth(0, 400);
+	for ( var i = 1; i < longest.length; i++) {
+			mytable.setWidth(i, 100);
+		}
+
+</script>
