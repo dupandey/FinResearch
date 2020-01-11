@@ -42,7 +42,7 @@ namespace FinResearch.Controllers
             }
 
             var financeStatement = await _context.FinanceStatement
-                .FirstOrDefaultAsync(m => m.Id == id);
+                .FirstOrDefaultAsync(m => m.StatementId == id);
             if (financeStatement == null)
             {
                 return NotFound();
@@ -62,7 +62,7 @@ namespace FinResearch.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Year")] FinanceStatement financeStatement)
+        public async Task<IActionResult> Create([Bind("StatementId,Year")] FinanceStatement financeStatement)
         {
             if (ModelState.IsValid)
             {
@@ -94,9 +94,9 @@ namespace FinResearch.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Year")] FinanceStatement financeStatement)
+        public async Task<IActionResult> Edit(long id, [Bind("StatementId,Year")] FinanceStatement financeStatement)
         {
-            if (id != financeStatement.Id)
+            if (id != financeStatement.StatementId)
             {
                 return NotFound();
             }
@@ -110,7 +110,7 @@ namespace FinResearch.Controllers
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!FinanceStatementExists(financeStatement.Id))
+                    if (!FinanceStatementExists(financeStatement.StatementId))
                     {
                         return NotFound();
                     }
@@ -125,7 +125,7 @@ namespace FinResearch.Controllers
         }
 
         // GET: FinanceStatements/Delete/5
-        public async Task<IActionResult> Delete(int? id)
+        public async Task<IActionResult> Delete(long? id)
         {
             if (id == null)
             {
@@ -133,7 +133,7 @@ namespace FinResearch.Controllers
             }
 
             var financeStatement = await _context.FinanceStatement
-                .FirstOrDefaultAsync(m => m.Id == id);
+                .FirstOrDefaultAsync(m => m.StatementId == id);
             if (financeStatement == null)
             {
                 return NotFound();
@@ -153,9 +153,9 @@ namespace FinResearch.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        private bool FinanceStatementExists(int id)
+        private bool FinanceStatementExists(long id)
         {
-            return _context.FinanceStatement.Any(e => e.Id == id);
+            return _context.FinanceStatement.Any(e => e.StatementId == id);
         }
     }
 }
