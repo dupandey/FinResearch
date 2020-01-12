@@ -37,7 +37,7 @@ namespace FinResearch.Controllers
 
             if (fileExtension == ".xls" || fileExtension == ".xlsm" || fileExtension == ".xlsx")
             {
-                var rootFolder = @"C:\Content";
+                var rootFolder = Directory.GetCurrentDirectory()+"\\Content";
                 var fileName = file.FileName;
                 var filePath = Path.Combine(rootFolder, fileName);
                 var fileLocation = new FileInfo(filePath);
