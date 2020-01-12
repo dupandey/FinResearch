@@ -1,23 +1,20 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\Durgesh\\source\\repos\\FinResearch\\FinResearch.csproj": {}
+    "C:\\FinResearchWeb\\FinResearch.csproj": {}
   },
   "projects": {
-    "C:\\Users\\Durgesh\\source\\repos\\FinResearch\\FinResearch.csproj": {
+    "C:\\FinResearchWeb\\FinResearch.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\Durgesh\\source\\repos\\FinResearch\\FinResearch.csproj",
+        "projectUniqueName": "C:\\FinResearchWeb\\FinResearch.csproj",
         "projectName": "FinResearch",
-        "projectPath": "C:\\Users\\Durgesh\\source\\repos\\FinResearch\\FinResearch.csproj",
-        "packagesPath": "C:\\Users\\Durgesh\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Durgesh\\source\\repos\\FinResearch\\obj\\",
+        "projectPath": "C:\\FinResearchWeb\\FinResearch.csproj",
+        "packagesPath": "C:\\Users\\suryayad\\.nuget\\packages\\",
+        "outputPath": "C:\\FinResearchWeb\\obj\\",
         "projectStyle": "PackageReference",
-        "fallbackFolders": [
-          "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"
-        ],
         "configFilePaths": [
-          "C:\\Users\\Durgesh\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\suryayad\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
@@ -41,6 +38,10 @@
       "frameworks": {
         "netcoreapp3.0": {
           "dependencies": {
+            "EPPlus": {
+              "target": "Package",
+              "version": "[4.5.3.2, )"
+            },
             "EntityFramework": {
               "target": "Package",
               "version": "[6.4.0, )"
@@ -78,6 +79,24 @@
           ],
           "assetTargetFallback": true,
           "warn": true,
+          "downloadDependencies": [
+            {
+              "name": "Microsoft.AspNetCore.App.Ref",
+              "version": "[3.0.1, 3.0.1]"
+            },
+            {
+              "name": "Microsoft.NETCore.App.Host.win-x64",
+              "version": "[3.0.1, 3.0.1]"
+            },
+            {
+              "name": "Microsoft.NETCore.App.Ref",
+              "version": "[3.0.0, 3.0.0]"
+            },
+            {
+              "name": "Microsoft.WindowsDesktop.App.Ref",
+              "version": "[3.0.0, 3.0.0]"
+            }
+          ],
           "frameworkReferences": {
             "Microsoft.AspNetCore.App": {
               "privateAssets": "none"
@@ -86,7 +105,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\3.0.100\\RuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\3.1.100\\RuntimeIdentifierGraph.json"
         }
       }
     }
