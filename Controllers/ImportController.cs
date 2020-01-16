@@ -66,7 +66,7 @@ namespace FinResearch.Controllers
                 var company = _context.Companies.FirstOrDefault(m => m.CompanyCode == companyCode && m.IsActive == true);
                 if (company == null)
                 {
-                    ViewBag.Message = companyName + " company not found. So file can't be uploaded, Please contact admin to add.";
+                    ViewBag.Message = companyName + " company not found. So file can't be uploaded, Please contact Admin to add.";
                     return View("Index");
                 }
 
@@ -74,22 +74,28 @@ namespace FinResearch.Controllers
                 {
                     foreach (var workSheet in package.Workbook.Worksheets)
                     {
-                        //ExcelWorksheet workSheet = package.Workbook.Worksheets["Table1"];
-                        ////var workSheet = package.Workbook.Worksheets.First();
                         int totalRows = workSheet.Dimension.Rows;
                         string categoryName = workSheet.Name;
                         var category = _context.Categories.FirstOrDefault(m => m.CategoryName == categoryName && m.IsActive == true);
 
+                        long? currentParentLineItemID = null;
+
                         for (int i = 4; i <= totalRows; i++)
                         {
                             long currentLineItemID = 0;
-                            if (category != null)
+
+                            if (category != null && workSheet.Cells[i, 1].Value != null)
                             {
                                 var LineItemText = workSheet.Cells[i, 1].Value.ToString();
-                                var lineItemId = _context.LineItems.FirstOrDefault(m => m.CategoryId == category.CategoryId && m.IsActive == true).LineItemId;
-                                if (lineItemId > 0)
+                                var lineItem = _context.LineItems.FirstOrDefault(m => m.CategoryId == category.CategoryId && m.IsActive == true);
+                                if (LineItemText.EndsWith(':') || LineItemText.ToLower().Trim().Equals("check"))
                                 {
-                                    currentLineItemID = lineItemId;
+                                    currentParentLineItemID = lineItem.LineItemId;
+                                    continue;
+                                }
+                                if (lineItem.LineItemId > 0)
+                                {
+                                    currentLineItemID = lineItem.LineItemId;
                                     LineItem updateLine = _context.LineItems.FirstOrDefault(m => m.LineItemText == LineItemText && m.CategoryId == category.CategoryId && m.IsActive == true);
                                     if (updateLine != null)
                                     {
@@ -102,7 +108,7 @@ namespace FinResearch.Controllers
                                     {
                                         updateLine = new LineItem();
                                         updateLine.LineItemText = LineItemText;
-                                        updateLine.ParentLineItemId = null;
+                                        updateLine.ParentLineItemId = currentParentLineItemID;
                                         updateLine.IsActive = true;
                                         updateLine.CategoryId = category.CategoryId;
                                         updateLine.CreatedDate = DateTime.Now;
@@ -110,12 +116,18 @@ namespace FinResearch.Controllers
                                         _context.SaveChanges();
                                         currentLineItemID = updateLine.LineItemId;
                                     }
+
+
                                 }
                                 else
                                 {
                                     LineItem newLine = new LineItem();
                                     newLine.LineItemText = LineItemText;
-                                    newLine.ParentLineItemId = null;
+                                    if (LineItemText.EndsWith(':'))
+                                    {
+                                        currentParentLineItemID = lineItem.LineItemId;
+                                    }
+                                    newLine.ParentLineItemId = currentParentLineItemID;
                                     newLine.IsActive = true;
                                     newLine.CategoryId = category.CategoryId;
                                     newLine.CreatedDate = DateTime.Now;
@@ -138,15 +150,22 @@ namespace FinResearch.Controllers
                                         {
                                             yearQuarterText = workSheet.Cells[1, j].Value.ToString();//Years or Quarters fetch
                                             //Quarterly texts
-                                            if(!string.IsNullOrEmpty(yearQuarterText) && yearQuarterText.Contains("Q"))
+                                            if (!string.IsNullOrEmpty(yearQuarterText) && yearQuarterText.Length >= 4)
                                             {
-                                                yearQuarterText = yearQuarterText.Substring(2, 2);
-                                                yearQuarterText = "20" + yearQuarterText;
+                                                if (yearQuarterText.Contains("Q"))
+                                                {
+                                                    yearQuarterText = yearQuarterText.Substring(2, 2);
+                                                    yearQuarterText = "20" + yearQuarterText;
+                                                }
+                                                //Else Yearly texts
+                                                dateText = workSheet.Cells[2, j].Text.ToString();//Dates fetch
+                                                dateText = dateText + "-" + yearQuarterText.Substring(0, 4);
+                                                dateFormatted = DateTime.ParseExact(dateText, "dd-MMM-yyyy", CultureInfo.InvariantCulture);
                                             }
-                                            //Else Yearly texts
-                                            dateText = workSheet.Cells[2, j].Text.ToString();//Dates fetch
-                                            dateText = dateText + "-"+ yearQuarterText.Substring(0, 4);
-                                            dateFormatted = DateTime.ParseExact(dateText, "dd-MMM-yyyy", CultureInfo.InvariantCulture);
+                                            else
+                                            {
+                                                continue;
+                                            }
                                         }
                                         else
                                         {
@@ -154,7 +173,7 @@ namespace FinResearch.Controllers
                                         }
 
                                         long currentStatementID = 0;
-                                        var finStatement = _context.FinanceStatement.FirstOrDefault(m => m.CompanyId == company.CompanyId && m.TransactionDate.Date == dateFormatted.Date && m.Quarter.Contains(yearQuarterText) && m.IsActive == true);
+                                        var finStatement = _context.FinanceStatements.FirstOrDefault(m => m.CompanyId == company.CompanyId && m.TransactionDate.Date == dateFormatted.Date && m.Quarter.Contains(yearQuarterText) && m.IsActive == true);
                                         if (finStatement == null)//New Year / Quarter Date to be added
                                         {
                                             finStatement = new FinanceStatement();
@@ -162,8 +181,9 @@ namespace FinResearch.Controllers
                                             finStatement.TransactionDate = dateFormatted;
                                             finStatement.Quarter = yearQuarterText;
                                             finStatement.IsHistorical = DateTime.Now.Date.CompareTo(dateFormatted.Date) > 0;
+                                            finStatement.IsActive = true;
                                             finStatement.CreatedDate = DateTime.Now;
-                                            _context.FinanceStatement.Add(finStatement);
+                                            _context.FinanceStatements.Add(finStatement);
                                             _context.SaveChanges();
                                             currentStatementID = finStatement.StatementId;
                                         }
@@ -176,10 +196,10 @@ namespace FinResearch.Controllers
                                         {
                                             var dataValue = workSheet.Cells[i, j].Value.ToString();//data values fetch
 
-                                            var IS = _context.ISs.FirstOrDefault(m => m.StatementId == currentStatementID && m.LineItemId == currentLineItemID && m.IsActive == true);
+                                            var IS = _context.ISs.Where(m => m.StatementId == currentStatementID && m.LineItemId == currentLineItemID && m.IsActive == true).FirstOrDefault();
                                             if (IS != null)
                                             {
-                                                IS.ItemValue = long.Parse(dataValue);
+                                                IS.ItemValue = dataValue;
                                                 IS.ModifiedDate = DateTime.Now;
                                                 _context.ISs.Update(IS);
                                                 _context.SaveChanges();
@@ -187,9 +207,10 @@ namespace FinResearch.Controllers
                                             else
                                             {
                                                 IS = new IS();
-                                                IS.ItemValue = long.Parse(dataValue);
+                                                IS.ItemValue = dataValue;
                                                 IS.LineItemId = currentLineItemID;
                                                 IS.StatementId = currentStatementID;
+                                                IS.IsActive = true;
                                                 IS.CreatedDate = DateTime.Now;
                                                 _context.ISs.Add(IS);
                                                 _context.SaveChanges();
@@ -211,15 +232,22 @@ namespace FinResearch.Controllers
                                         {
                                             yearQuarterText = workSheet.Cells[1, j].Value.ToString();//Years or Quarters fetch
                                             //Quarterly texts
-                                            if (!string.IsNullOrEmpty(yearQuarterText) && yearQuarterText.Contains("Q"))
+                                            if (!string.IsNullOrEmpty(yearQuarterText) && yearQuarterText.Length >= 4)
                                             {
-                                                yearQuarterText = yearQuarterText.Substring(2, 2);
-                                                yearQuarterText = "20" + yearQuarterText;
+                                                if (yearQuarterText.Contains("Q"))
+                                                {
+                                                    yearQuarterText = yearQuarterText.Substring(2, 2);
+                                                    yearQuarterText = "20" + yearQuarterText;
+                                                }
+                                                //Else Yearly texts
+                                                dateText = workSheet.Cells[2, j].Text.ToString();//Dates fetch
+                                                dateText = dateText + "-" + yearQuarterText.Substring(0, 4);
+                                                dateFormatted = DateTime.ParseExact(dateText, "dd-MMM-yyyy", CultureInfo.InvariantCulture);
                                             }
-                                            //Else Yearly texts
-                                            dateText = workSheet.Cells[2, j].Text.ToString();//Dates fetch
-                                            dateText = dateText + "-" + yearQuarterText.Substring(0, 4);
-                                            dateFormatted = DateTime.ParseExact(dateText, "dd-MMM-yyyy", CultureInfo.InvariantCulture);
+                                            else
+                                            {
+                                                continue;
+                                            }
                                         }
                                         else
                                         {
@@ -227,7 +255,7 @@ namespace FinResearch.Controllers
                                         }
 
                                         long currentStatementID = 0;
-                                        var finStatement = _context.FinanceStatement.FirstOrDefault(m => m.CompanyId == company.CompanyId && m.TransactionDate.Date == dateFormatted.Date && m.Quarter.Contains(yearQuarterText) && m.IsActive == true);
+                                        var finStatement = _context.FinanceStatements.FirstOrDefault(m => m.CompanyId == company.CompanyId && m.TransactionDate.Date == dateFormatted.Date && m.Quarter.Contains(yearQuarterText) && m.IsActive == true);
                                         if (finStatement == null)//New Year / Quarter Date to be added
                                         {
                                             finStatement = new FinanceStatement();
@@ -236,7 +264,7 @@ namespace FinResearch.Controllers
                                             finStatement.Quarter = yearQuarterText;
                                             finStatement.IsHistorical = DateTime.Now.Date.CompareTo(dateFormatted.Date) > 0;
                                             finStatement.CreatedDate = DateTime.Now;
-                                            _context.FinanceStatement.Add(finStatement);
+                                            _context.FinanceStatements.Add(finStatement);
                                             _context.SaveChanges();
                                             currentStatementID = finStatement.StatementId;
                                         }
@@ -251,7 +279,7 @@ namespace FinResearch.Controllers
                                             var BS = _context.BalanceSheets.FirstOrDefault(m => m.StatementId == currentStatementID && m.LineItemId == currentLineItemID && m.IsActive == true);
                                             if (BS != null)
                                             {
-                                                BS.ItemValue = long.Parse(dataValue);
+                                                BS.ItemValue = dataValue;
                                                 BS.ModifiedDate = DateTime.Now;
                                                 _context.BalanceSheets.Update(BS);
                                                 _context.SaveChanges();
@@ -259,9 +287,10 @@ namespace FinResearch.Controllers
                                             else
                                             {
                                                 BS = new BalanceSheet();
-                                                BS.ItemValue = long.Parse(dataValue);
+                                                BS.ItemValue = dataValue;
                                                 BS.LineItemId = currentLineItemID;
                                                 BS.StatementId = currentStatementID;
+                                                BS.IsActive = true;
                                                 BS.CreatedDate = DateTime.Now;
                                                 _context.BalanceSheets.Add(BS);
                                                 _context.SaveChanges();
@@ -282,16 +311,23 @@ namespace FinResearch.Controllers
                                         if (workSheet.Cells[1, j].Value != null && workSheet.Cells[2, j].Text != null)
                                         {
                                             yearQuarterText = workSheet.Cells[1, j].Value.ToString();//Years or Quarters fetch
-                                            //Quarterly texts
-                                            if (!string.IsNullOrEmpty(yearQuarterText) && yearQuarterText.Contains("Q"))
+                                            if (!string.IsNullOrEmpty(yearQuarterText) && yearQuarterText.Length >= 4)
                                             {
-                                                yearQuarterText = yearQuarterText.Substring(2, 2);
-                                                yearQuarterText = "20" + yearQuarterText;
+                                                //Quarterly texts
+                                                if (yearQuarterText.Contains("Q"))
+                                                {
+                                                    yearQuarterText = yearQuarterText.Substring(2, 2);
+                                                    yearQuarterText = "20" + yearQuarterText;
+                                                }
+                                                //Else Yearly texts
+                                                dateText = workSheet.Cells[2, j].Text.ToString();//Dates fetch
+                                                dateText = dateText + "-" + yearQuarterText.Substring(0, 4);
+                                                dateFormatted = DateTime.ParseExact(dateText, "dd-MMM-yyyy", CultureInfo.InvariantCulture);
                                             }
-                                            //Else Yearly texts
-                                            dateText = workSheet.Cells[2, j].Text.ToString();//Dates fetch
-                                            dateText = dateText + "-" + yearQuarterText.Substring(0, 4);
-                                            dateFormatted = DateTime.ParseExact(dateText, "dd-MMM-yyyy", CultureInfo.InvariantCulture);
+                                            else
+                                            {
+                                                continue;
+                                            }
                                         }
                                         else
                                         {
@@ -299,7 +335,7 @@ namespace FinResearch.Controllers
                                         }
 
                                         long currentStatementID = 0;
-                                        var finStatement = _context.FinanceStatement.FirstOrDefault(m => m.CompanyId == company.CompanyId && m.TransactionDate.Date == dateFormatted.Date && m.Quarter.Contains(yearQuarterText) && m.IsActive == true);
+                                        var finStatement = _context.FinanceStatements.FirstOrDefault(m => m.CompanyId == company.CompanyId && m.TransactionDate.Date == dateFormatted.Date && m.Quarter.Contains(yearQuarterText) && m.IsActive == true);
                                         if (finStatement == null)//New Year / Quarter Date to be added
                                         {
                                             finStatement = new FinanceStatement();
@@ -308,7 +344,8 @@ namespace FinResearch.Controllers
                                             finStatement.Quarter = yearQuarterText;
                                             finStatement.IsHistorical = DateTime.Now.Date.CompareTo(dateFormatted.Date) > 0;
                                             finStatement.CreatedDate = DateTime.Now;
-                                            _context.FinanceStatement.Add(finStatement);
+                                            finStatement.IsActive = true;
+                                            _context.FinanceStatements.Add(finStatement);
                                             _context.SaveChanges();
                                             currentStatementID = finStatement.StatementId;
                                         }
@@ -323,7 +360,7 @@ namespace FinResearch.Controllers
                                             var CF = _context.CashFlows.FirstOrDefault(m => m.StatementId == currentStatementID && m.LineItemId == currentLineItemID && m.IsActive == true);
                                             if (CF != null)
                                             {
-                                                CF.ItemValue = long.Parse(dataValue);
+                                                CF.ItemValue = dataValue;
                                                 CF.ModifiedDate = DateTime.Now;
                                                 _context.CashFlows.Update(CF);
                                                 _context.SaveChanges();
@@ -331,9 +368,10 @@ namespace FinResearch.Controllers
                                             else
                                             {
                                                 CF = new CashFlow();
-                                                CF.ItemValue = long.Parse(dataValue);
+                                                CF.ItemValue = dataValue;
                                                 CF.LineItemId = currentLineItemID;
                                                 CF.StatementId = currentStatementID;
+                                                CF.IsActive = true;
                                                 CF.CreatedDate = DateTime.Now;
                                                 _context.CashFlows.Add(CF);
                                                 _context.SaveChanges();
@@ -354,16 +392,23 @@ namespace FinResearch.Controllers
                                         if (workSheet.Cells[1, j].Value != null && workSheet.Cells[2, j].Text != null)
                                         {
                                             yearQuarterText = workSheet.Cells[1, j].Value.ToString();//Years or Quarters fetch
-                                            //Quarterly texts
-                                            if (!string.IsNullOrEmpty(yearQuarterText) && yearQuarterText.Contains("Q"))
+                                            if (!string.IsNullOrEmpty(yearQuarterText) && yearQuarterText.Length >= 4)
                                             {
-                                                yearQuarterText = yearQuarterText.Substring(2, 2);
-                                                yearQuarterText = "20" + yearQuarterText;
+                                                //Quarterly texts
+                                                if (yearQuarterText.Contains("Q"))
+                                                {
+                                                    yearQuarterText = yearQuarterText.Substring(2, 2);
+                                                    yearQuarterText = "20" + yearQuarterText;
+                                                }
+                                                //Else Yearly texts
+                                                dateText = workSheet.Cells[2, j].Text.ToString();//Dates fetch
+                                                dateText = dateText + "-" + yearQuarterText.Substring(0, 4);
+                                                dateFormatted = DateTime.ParseExact(dateText, "dd-MMM-yyyy", CultureInfo.InvariantCulture);
                                             }
-                                            //Else Yearly texts
-                                            dateText = workSheet.Cells[2, j].Text.ToString();//Dates fetch
-                                            dateText = dateText + "-" + yearQuarterText.Substring(0, 4);
-                                            dateFormatted = DateTime.ParseExact(dateText, "dd-MMM-yyyy", CultureInfo.InvariantCulture);
+                                            else
+                                            {
+                                                continue;
+                                            }
                                         }
                                         else
                                         {
@@ -371,7 +416,7 @@ namespace FinResearch.Controllers
                                         }
 
                                         long currentStatementID = 0;
-                                        var finStatement = _context.FinanceStatement.FirstOrDefault(m => m.CompanyId == company.CompanyId && m.TransactionDate.Date == dateFormatted.Date && m.Quarter.Contains(yearQuarterText) && m.IsActive == true);
+                                        var finStatement = _context.FinanceStatements.FirstOrDefault(m => m.CompanyId == company.CompanyId && m.TransactionDate.Date == dateFormatted.Date && m.Quarter.Contains(yearQuarterText) && m.IsActive == true);
                                         if (finStatement == null)//New Year / Quarter Date to be added
                                         {
                                             finStatement = new FinanceStatement();
@@ -380,7 +425,8 @@ namespace FinResearch.Controllers
                                             finStatement.Quarter = yearQuarterText;
                                             finStatement.IsHistorical = DateTime.Now.Date.CompareTo(dateFormatted.Date) > 0;
                                             finStatement.CreatedDate = DateTime.Now;
-                                            _context.FinanceStatement.Add(finStatement);
+                                            finStatement.IsActive = true;
+                                            _context.FinanceStatements.Add(finStatement);
                                             _context.SaveChanges();
                                             currentStatementID = finStatement.StatementId;
                                         }
@@ -395,7 +441,7 @@ namespace FinResearch.Controllers
                                             var ISNG = _context.ISNonGAAPs.FirstOrDefault(m => m.StatementId == currentStatementID && m.LineItemId == currentLineItemID && m.IsActive == true);
                                             if (ISNG != null)
                                             {
-                                                ISNG.ItemValue = long.Parse(dataValue);
+                                                ISNG.ItemValue = dataValue;
                                                 ISNG.ModifiedDate = DateTime.Now;
                                                 _context.ISNonGAAPs.Update(ISNG);
                                                 _context.SaveChanges();
@@ -403,9 +449,10 @@ namespace FinResearch.Controllers
                                             else
                                             {
                                                 ISNG = new ISNonGAAP();
-                                                ISNG.ItemValue = long.Parse(dataValue);
+                                                ISNG.ItemValue = dataValue;
                                                 ISNG.LineItemId = currentLineItemID;
                                                 ISNG.StatementId = currentStatementID;
+                                                ISNG.IsActive = true;
                                                 ISNG.CreatedDate = DateTime.Now;
                                                 _context.ISNonGAAPs.Add(ISNG);
                                                 _context.SaveChanges();
@@ -426,16 +473,30 @@ namespace FinResearch.Controllers
                                         if (workSheet.Cells[1, j].Value != null && workSheet.Cells[2, j].Text != null)
                                         {
                                             yearQuarterText = workSheet.Cells[1, j].Value.ToString();//Years or Quarters fetch
-                                            //Quarterly texts
-                                            if (!string.IsNullOrEmpty(yearQuarterText) && yearQuarterText.Contains("Q"))
+                                            if (!string.IsNullOrEmpty(yearQuarterText) && yearQuarterText.Length >= 4)
                                             {
-                                                yearQuarterText = yearQuarterText.Substring(2, 2);
-                                                yearQuarterText = "20" + yearQuarterText;
+                                                if (!string.IsNullOrEmpty(yearQuarterText) && yearQuarterText.Length >= 4)
+                                                {
+                                                    //Quarterly texts
+                                                    if (yearQuarterText.Contains("Q"))
+                                                    {
+                                                        yearQuarterText = yearQuarterText.Substring(2, 2);
+                                                        yearQuarterText = "20" + yearQuarterText;
+                                                    }
+                                                    //Else Yearly texts
+                                                    dateText = workSheet.Cells[2, j].Text.ToString();//Dates fetch
+                                                    dateText = dateText + "-" + yearQuarterText.Substring(0, 4);
+                                                    dateFormatted = DateTime.ParseExact(dateText, "dd-MMM-yyyy", CultureInfo.InvariantCulture);
+                                                }
+                                                else
+                                                {
+                                                    continue;
+                                                }
                                             }
-                                            //Else Yearly texts
-                                            dateText = workSheet.Cells[2, j].Text.ToString();//Dates fetch
-                                            dateText = dateText + "-" + yearQuarterText.Substring(0, 4);
-                                            dateFormatted = DateTime.ParseExact(dateText, "dd-MMM-yyyy", CultureInfo.InvariantCulture);
+                                            else
+                                            {
+                                                continue;
+                                            }
                                         }
                                         else
                                         {
@@ -443,7 +504,7 @@ namespace FinResearch.Controllers
                                         }
 
                                         long currentStatementID = 0;
-                                        var finStatement = _context.FinanceStatement.FirstOrDefault(m => m.CompanyId == company.CompanyId && m.TransactionDate.Date == dateFormatted.Date && m.Quarter.Contains(yearQuarterText) && m.IsActive == true);
+                                        var finStatement = _context.FinanceStatements.FirstOrDefault(m => m.CompanyId == company.CompanyId && m.TransactionDate.Date == dateFormatted.Date && m.Quarter.Contains(yearQuarterText) && m.IsActive == true);
                                         if (finStatement == null)//New Year / Quarter Date to be added
                                         {
                                             finStatement = new FinanceStatement();
@@ -452,7 +513,7 @@ namespace FinResearch.Controllers
                                             finStatement.Quarter = yearQuarterText;
                                             finStatement.IsHistorical = DateTime.Now.Date.CompareTo(dateFormatted.Date) > 0;
                                             finStatement.CreatedDate = DateTime.Now;
-                                            _context.FinanceStatement.Add(finStatement);
+                                            _context.FinanceStatements.Add(finStatement);
                                             _context.SaveChanges();
                                             currentStatementID = finStatement.StatementId;
                                         }
@@ -467,7 +528,7 @@ namespace FinResearch.Controllers
                                             var RD = _context.RDs.FirstOrDefault(m => m.StatementId == currentStatementID && m.LineItemId == currentLineItemID && m.IsActive == true);
                                             if (RD != null)
                                             {
-                                                RD.ItemValue = long.Parse(dataValue);
+                                                RD.ItemValue = dataValue;
                                                 RD.ModifiedDate = DateTime.Now;
                                                 _context.RDs.Update(RD);
                                                 _context.SaveChanges();
@@ -475,9 +536,10 @@ namespace FinResearch.Controllers
                                             else
                                             {
                                                 RD = new RD();
-                                                RD.ItemValue = long.Parse(dataValue);
+                                                RD.ItemValue = dataValue;
                                                 RD.LineItemId = currentLineItemID;
                                                 RD.StatementId = currentStatementID;
+                                                RD.IsActive = true;
                                                 RD.CreatedDate = DateTime.Now;
                                                 _context.RDs.Add(RD);
                                                 _context.SaveChanges();
@@ -486,8 +548,9 @@ namespace FinResearch.Controllers
                                     }
                                 }
                             }
+                            else
+                                continue;
                         }
-
                     }
                 }
                 ViewBag.Message = "Data Imported Successfully.";

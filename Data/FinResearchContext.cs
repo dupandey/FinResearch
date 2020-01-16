@@ -17,7 +17,7 @@ namespace FinResearch.Models
         public DbSet<Company> Companies { get; set; }
         public DbSet<Category> Categories { get; set; }
         public DbSet<LineItem> LineItems { get; set; }
-        public DbSet<FinanceStatement> FinanceStatement { get; set; }
+        public DbSet<FinanceStatement> FinanceStatements { get; set; }
 		public DbSet<FinQuery> FinQuery { get; set; }
         public DbSet<BalanceSheet> BalanceSheets { get; set; }
         public DbSet<CashFlow> CashFlows { get; set; }

@@ -22,7 +22,7 @@ namespace FinResearch.Controllers
         public async Task<IActionResult> Index()
         {
 			var p= await _context.FinQuery.FromSqlRaw("exec financedata").ToListAsync();
-			return View(await _context.FinanceStatement.ToListAsync());
+			return View(await _context.FinanceStatements.ToListAsync());
 		
 			
         }
@@ -42,7 +42,7 @@ namespace FinResearch.Controllers
                 return NotFound();
             }
 
-            var financeStatement = await _context.FinanceStatement
+            var financeStatement = await _context.FinanceStatements
                 .FirstOrDefaultAsync(m => m.StatementId == id);
             if (financeStatement == null)
             {
@@ -82,7 +82,7 @@ namespace FinResearch.Controllers
                 return NotFound();
             }
 
-            var financeStatement = await _context.FinanceStatement.FindAsync(id);
+            var financeStatement = await _context.FinanceStatements.FindAsync(id);
             if (financeStatement == null)
             {
                 return NotFound();
@@ -133,7 +133,7 @@ namespace FinResearch.Controllers
                 return NotFound();
             }
 
-            var financeStatement = await _context.FinanceStatement
+            var financeStatement = await _context.FinanceStatements
                 .FirstOrDefaultAsync(m => m.StatementId == id);
             if (financeStatement == null)
             {
@@ -148,15 +148,15 @@ namespace FinResearch.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var financeStatement = await _context.FinanceStatement.FindAsync(id);
-            _context.FinanceStatement.Remove(financeStatement);
+            var financeStatement = await _context.FinanceStatements.FindAsync(id);
+            _context.FinanceStatements.Remove(financeStatement);
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
         private bool FinanceStatementExists(long id)
         {
-            return _context.FinanceStatement.Any(e => e.StatementId == id);
+            return _context.FinanceStatements.Any(e => e.StatementId == id);
         }
     }
 }

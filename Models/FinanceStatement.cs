@@ -15,7 +15,6 @@ namespace FinResearch.Models
         //public int Year { get; set; }
         [Key]
         public long StatementId { get; set; }
-        public Company Company { get; set; }
         public int CompanyId { get; set; }
         public DateTime TransactionDate { get; set; }
         public string Quarter { get; set; }
@@ -23,6 +22,7 @@ namespace FinResearch.Models
         public bool IsActive { get; set; }
         public DateTime? CreatedDate { get; set; }
         public DateTime? ModifiedDate { get; set; }
+
     }
 
     [Table("Company")]

@@ -13,11 +13,10 @@ namespace FinResearch.Models
     {
         [Key]
         public long CashFlowId { get; set; }
-        public FinanceStatement FinanceStatement { get; set; }
         public long StatementId { get; set; }
-        public LineItem LineItem { get; set; }
+
         public long LineItemId { get; set; }
-        public long? ItemValue { get; set; }
+        public string ItemValue { get; set; }
         public bool IsActive { get; set; }
         public DateTime? CreatedDate { get; set; }
         public DateTime? ModifiedDate { get; set; }
