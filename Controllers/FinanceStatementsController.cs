@@ -29,9 +29,8 @@ namespace FinResearch.Controllers
 
 		public ActionResult GetStatements()
 		{
-            //var p =  _context.FinQuery.FromSqlRaw("exec financedata").ToList();
-            //return Json(p.FirstOrDefault().Records);
-            return null;
+            var p = _context.FinQuery.FromSqlRaw("exec financedata").ToList();
+            return Json(p.FirstOrDefault().Records);
 		}
 
 		// GET: FinanceStatements/Details/5
