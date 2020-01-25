@@ -41,9 +41,9 @@
 	//var sortestArr = valuearray;
 
 	//var p = valuearray.map(function (x) {
-		
+
 	//	if (x.length == 1) {
-			
+
 	//		var item = x[0];
 	//		var i;
 	//		for ( i = 0; i < longest.length; i++) {
@@ -53,11 +53,11 @@
 	//			else {
 	//				x[i]= item;
 	//			}
-				
+
 	//		}
 	//		console.log(x);
-			
-			
+
+
 	//	}
 	//	return x;
 	//});
@@ -74,50 +74,66 @@
 	//console.log(sortestArr);
 	debugger;
 	function numberToLetters(nNum) {
-    var result;
-    if (nNum <= 26) {
-        result = letter(nNum);
-    } else {
-        var modulo = nNum % 26;
-        var quotient = Math.floor(nNum / 26);
-        if (modulo === 0) {
-            result = letter(quotient - 1) + letter(26);
-        } else {
-            result = letter(quotient) + letter(modulo);
-        }
-    }
+		var result;
+		if (nNum <= 26) {
+			result = letter(nNum);
+		} else {
+			var modulo = nNum % 26;
+			var quotient = Math.floor(nNum / 26);
+			if (modulo === 0) {
+				result = letter(quotient - 1) + letter(26);
+			} else {
+				result = letter(quotient) + letter(modulo);
+			}
+		}
 
-    return result;
+		return result;
 	}
 	var arrNested = [];
 	for (i = 1; i <= longest.length; i++) {
-		arrNested.push({"title":numberToLetters(i) });
+		arrNested.push({ "title": numberToLetters(i) });
 	}
 
 	console.log(arrNested);
-	var mytable=$('#my').jexcel({
-		
-    minDimensions:[13,13],
-  
+	var mytable = $('#my').jexcel({
+
+		minDimensions: [13, 13],
+		tableOverflow: true,
+		tableWidth: "1400px",
+		tableHeight:'300px',
+		wordWrap: true,
 		data: valuearray,
 		colHeaders: longest,
-		nestedHeaders: [arrNested]
+		nestedHeaders: [arrNested],
+		updateTable: function (instance, cell, col, row, val, label, cellName) {
+			if (cell.innerText.indexOf('-')==0) {
+				var txt = $(cell).text()
+					$(cell).html('(' + txt+')');
+			}
+			if (col == 0) {
+				$(cell).css("text-align", "left");
+				if (cell.innerText.indexOf(":") >= 0) {
+					cell.style.fontWeight = 'bold';
+				}
+			}
+		}
 
 
 	});
-	
 
 
-function letter(nNum) {
-    var a = "A".charCodeAt(0);
-    return String.fromCharCode(a + nNum - 1);
-}
-	
+
+	function letter(nNum) {
+		var a = "A".charCodeAt(0);
+		return String.fromCharCode(a + nNum - 1);
+	}
+
 	console.log(catIndex);
 	mytable.moveColumn(catIndex, 0);
 	mytable.setWidth(0, 400);
-	for ( var i = 1; i < longest.length; i++) {
-			mytable.setWidth(i, 100);
-		}
+
+	for (var i = 1; i < longest.length; i++) {
+		mytable.setWidth(i, 100);
+	}
 
 </script>
