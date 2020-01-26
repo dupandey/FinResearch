@@ -79,72 +79,56 @@ namespace FinResearch.Controllers
                             string categoryName = workSheet.Name;
                             var category = _context.Categories.FirstOrDefault(m => m.CategoryName == categoryName && m.IsActive == true);
 
+                            /// Addition of each Line Items as per each excel sheets
                             long? currentParentLineItemID = null;
+                            long currentLineItemID = 0;
 
                             for (int i = 4; i <= totalRows; i++)
                             {
-                                long currentLineItemID = 0;
-
                                 if (category != null && workSheet.Cells[i, 1].Value != null)
                                 {
                                     var LineItemText = workSheet.Cells[i, 1].Value.ToString();
-                                    var lineItem = _context.LineItems.FirstOrDefault(m => m.CategoryId == category.CategoryId && m.IsActive == true);
-                                    if (lineItem == null)
+                                    if (LineItemText.ToLower().Trim().Equals("check"))
                                     {
-                                        LineItem newLine = new LineItem();
-                                        newLine.LineItemText = LineItemText;
-                                        newLine.ParentLineItemId = currentParentLineItemID;
-                                        newLine.IsActive = true;
-                                        newLine.CategoryId = category.CategoryId;
-                                        newLine.CreatedDate = DateTime.Now;
-                                        _context.LineItems.Add(newLine);
-                                        _context.SaveChanges();
-                                        currentLineItemID = newLine.LineItemId;
-                                        if (LineItemText.EndsWith(':'))
-                                        {
-                                            currentParentLineItemID = newLine.LineItemId;
-                                        }
+                                        continue;
                                     }
-                                    else if (lineItem.LineItemId > 0)
+                                    else if (LineItemText.EndsWith(':'))
                                     {
-                                        if (LineItemText.EndsWith(':') || LineItemText.ToLower().Trim().Equals("check"))
+                                        var parentLineItem = _context.LineItems.FirstOrDefault(m => m.CategoryId == category.CategoryId && m.LineItemText == LineItemText && m.ParentLineItemId == null && m.IsActive == true);
+                                        if (parentLineItem != null)
                                         {
-                                            currentParentLineItemID = lineItem.LineItemId;
-                                            continue;
-                                        }
-
-                                        currentLineItemID = lineItem.LineItemId;
-                                        LineItem updateLine = _context.LineItems.FirstOrDefault(m => m.LineItemText == LineItemText && m.CategoryId == category.CategoryId && m.IsActive == true);
-                                        if (updateLine != null)
-                                        {
-                                            updateLine.LineItemText = LineItemText;
-                                            updateLine.ModifiedDate = DateTime.Now;
-                                            _context.LineItems.Update(updateLine);
-                                            _context.SaveChanges();
+                                            currentParentLineItemID = parentLineItem.LineItemId;
                                         }
                                         else
                                         {
-                                            updateLine = new LineItem();
-                                            updateLine.LineItemText = LineItemText;
-                                            updateLine.ParentLineItemId = currentParentLineItemID;
-                                            updateLine.IsActive = true;
-                                            updateLine.CategoryId = category.CategoryId;
-                                            updateLine.CreatedDate = DateTime.Now;
-                                            _context.LineItems.Add(updateLine);
+                                            LineItem newLine = new LineItem();
+                                            newLine.LineItemText = LineItemText;
+                                            newLine.ParentLineItemId = null;
+                                            newLine.IsActive = true;
+                                            newLine.CategoryId = category.CategoryId;
+                                            newLine.CreatedDate = DateTime.Now;
+                                            _context.LineItems.Add(newLine);
                                             _context.SaveChanges();
-                                            currentLineItemID = updateLine.LineItemId;
+                                            currentLineItemID = newLine.LineItemId;
+                                            currentParentLineItemID = newLine.LineItemId;
                                         }
-
-
+                                        continue;
                                     }
-                                    else
+
+                                    var lineItem = _context.LineItems.FirstOrDefault(m => m.CategoryId == category.CategoryId && m.LineItemText == LineItemText && m.ParentLineItemId == currentParentLineItemID && m.IsActive == true);
+                                    if (lineItem != null)
+                                    {
+                                        lineItem.LineItemText = LineItemText;
+                                        lineItem.ModifiedDate = DateTime.Now;
+                                        _context.LineItems.Update(lineItem);
+                                        _context.SaveChanges();
+                                        currentLineItemID = lineItem.LineItemId;
+                                        currentParentLineItemID = lineItem.ParentLineItemId;
+                                    }
+                                    else if (lineItem == null)
                                     {
                                         LineItem newLine = new LineItem();
                                         newLine.LineItemText = LineItemText;
-                                        if (LineItemText.EndsWith(':'))
-                                        {
-                                            currentParentLineItemID = lineItem.LineItemId;
-                                        }
                                         newLine.ParentLineItemId = currentParentLineItemID;
                                         newLine.IsActive = true;
                                         newLine.CategoryId = category.CategoryId;
@@ -152,12 +136,40 @@ namespace FinResearch.Controllers
                                         _context.LineItems.Add(newLine);
                                         _context.SaveChanges();
                                         currentLineItemID = newLine.LineItemId;
+                                        currentParentLineItemID = newLine.ParentLineItemId;
                                     }
+                                }
+                            }
 
-                                    //Different worksheets of excel data to be merged
-                                    //IS Insertion/Updation
-                                    if (category.CategoryName.Equals("IS"))
+                            //Different worksheets of excel datafile to be merged
+                            //IS Insertion/Updation
+                            if (category != null && category.CategoryName.Equals("IS"))
+                            {
+                                for (int i = 4; i <= totalRows; i++)
+                                {
+                                    if (workSheet.Cells[i, 1].Value != null)
                                     {
+                                        var LineItemText = workSheet.Cells[i, 1].Value.ToString();
+                                        if (LineItemText.ToLower().Trim().Equals("check"))
+                                        {
+                                            continue;
+                                        }
+                                        else if (LineItemText.EndsWith(':'))
+                                        {
+                                            var parentLineItem = _context.LineItems.FirstOrDefault(m => m.CategoryId == category.CategoryId && m.LineItemText == LineItemText && m.ParentLineItemId == null && m.IsActive == true);
+                                            if (parentLineItem != null)
+                                            {
+                                                currentParentLineItemID = parentLineItem.LineItemId;
+                                            }
+                                            continue;
+                                        }
+                                        var lineItem = _context.LineItems.FirstOrDefault(m => m.CategoryId == category.CategoryId && m.LineItemText == LineItemText && m.ParentLineItemId == currentParentLineItemID && m.IsActive == true);
+                                        if (lineItem != null)
+                                        {
+                                            currentLineItemID = lineItem.LineItemId;
+                                            currentParentLineItemID = lineItem.ParentLineItemId;
+                                        }
+
                                         int totalCols = workSheet.Dimension.Columns;
                                         for (int j = 3; j <= totalCols; j++)
                                         {
@@ -167,7 +179,7 @@ namespace FinResearch.Controllers
                                             if (workSheet.Cells[1, j].Value != null && workSheet.Cells[2, j].Text != null)
                                             {
                                                 yearQuarterText = workSheet.Cells[1, j].Value.ToString();//Years or Quarters fetch
-                                                                                                         //Quarterly texts
+
                                                 if (!string.IsNullOrEmpty(yearQuarterText) && yearQuarterText.Length >= 4)
                                                 {
                                                     if (yearQuarterText.Contains("Q"))
@@ -179,6 +191,7 @@ namespace FinResearch.Controllers
                                                     dateText = workSheet.Cells[2, j].Text.ToString();//Dates fetch
                                                     dateText = dateText + "-" + yearQuarterText.Substring(0, 4);
                                                     dateFormatted = DateTime.ParseExact(dateText, "dd-MMM-yyyy", CultureInfo.InvariantCulture);
+                                                    yearQuarterText = workSheet.Cells[1, j].Value.ToString();//Years or Quarters text fetch
                                                 }
                                                 else
                                                 {
@@ -190,8 +203,8 @@ namespace FinResearch.Controllers
                                                 continue;
                                             }
 
-                                            long currentStatementID = 0;
-                                            var finStatement = _context.FinanceStatements.FirstOrDefault(m => m.CompanyId == company.CompanyId && m.TransactionDate.Date == dateFormatted.Date && m.Quarter.Contains(yearQuarterText) && m.IsActive == true);
+                                            long currentISStatementID = 0;
+                                            var finStatement = _context.FinanceStatements.FirstOrDefault(m => m.CompanyId == company.CompanyId && m.TransactionDate.Date == dateFormatted.Date && m.Quarter.ToLower().Trim().Equals(yearQuarterText.ToLower().Trim()) && m.IsActive == true);
                                             if (finStatement == null)//New Year / Quarter Date to be added
                                             {
                                                 finStatement = new FinanceStatement();
@@ -203,18 +216,18 @@ namespace FinResearch.Controllers
                                                 finStatement.CreatedDate = DateTime.Now;
                                                 _context.FinanceStatements.Add(finStatement);
                                                 _context.SaveChanges();
-                                                currentStatementID = finStatement.StatementId;
+                                                currentISStatementID = finStatement.StatementId;
                                             }
                                             else
                                             {
-                                                currentStatementID = finStatement.StatementId;
+                                                currentISStatementID = finStatement.StatementId;
                                             }
 
                                             if (workSheet.Cells[i, j].Value != null)
                                             {
                                                 var dataValue = workSheet.Cells[i, j].Value.ToString();//data values fetch
 
-                                                var IS = _context.ISs.Where(m => m.StatementId == currentStatementID && m.LineItemId == currentLineItemID && m.IsActive == true).FirstOrDefault();
+                                                var IS = _context.ISs.Where(m => m.StatementId == currentISStatementID && m.LineItemId == currentLineItemID && m.IsActive == true).FirstOrDefault();
                                                 if (IS != null)
                                                 {
                                                     IS.ItemValue = dataValue;
@@ -227,7 +240,7 @@ namespace FinResearch.Controllers
                                                     IS = new IS();
                                                     IS.ItemValue = dataValue;
                                                     IS.LineItemId = currentLineItemID;
-                                                    IS.StatementId = currentStatementID;
+                                                    IS.StatementId = currentISStatementID;
                                                     IS.IsActive = true;
                                                     IS.CreatedDate = DateTime.Now;
                                                     _context.ISs.Add(IS);
@@ -236,7 +249,7 @@ namespace FinResearch.Controllers
                                             }
                                             else
                                             {
-                                                var IS = _context.ISs.Where(m => m.StatementId == currentStatementID && m.LineItemId == currentLineItemID && m.IsActive == true).FirstOrDefault();
+                                                var IS = _context.ISs.Where(m => m.StatementId == currentISStatementID && m.LineItemId == currentLineItemID && m.IsActive == true).FirstOrDefault();
                                                 if (IS != null)
                                                 {
                                                     IS.ItemValue = null;
@@ -249,7 +262,7 @@ namespace FinResearch.Controllers
                                                     IS = new IS();
                                                     IS.ItemValue = null;
                                                     IS.LineItemId = currentLineItemID;
-                                                    IS.StatementId = currentStatementID;
+                                                    IS.StatementId = currentISStatementID;
                                                     IS.IsActive = true;
                                                     IS.CreatedDate = DateTime.Now;
                                                     _context.ISs.Add(IS);
@@ -258,10 +271,37 @@ namespace FinResearch.Controllers
                                             }
                                         }
                                     }
+                                }
+                            }
 
-                                    //BS Insertion/Updation
-                                    if (category.CategoryName.Equals("BS"))
+                            //BS Insertion/Updation
+                            if (category != null && category.CategoryName.Equals("BS"))
+                            {
+                                for (int i = 4; i <= totalRows; i++)
+                                {
+                                    if (workSheet.Cells[i, 1].Value != null)
                                     {
+                                        var LineItemText = workSheet.Cells[i, 1].Value.ToString();
+                                        if (LineItemText.ToLower().Trim().Equals("check"))
+                                        {
+                                            continue;
+                                        }
+                                        else if (LineItemText.EndsWith(':'))
+                                        {
+                                            var parentLineItem = _context.LineItems.FirstOrDefault(m => m.CategoryId == category.CategoryId && m.LineItemText == LineItemText && m.ParentLineItemId == null && m.IsActive == true);
+                                            if (parentLineItem != null)
+                                            {
+                                                currentParentLineItemID = parentLineItem.LineItemId;
+                                            }
+                                            continue;
+                                        }
+                                        var lineItem = _context.LineItems.FirstOrDefault(m => m.CategoryId == category.CategoryId && m.LineItemText == LineItemText && m.ParentLineItemId == currentParentLineItemID && m.IsActive == true);
+                                        if (lineItem != null)
+                                        {
+                                            currentLineItemID = lineItem.LineItemId;
+                                            currentParentLineItemID = lineItem.ParentLineItemId;
+                                        }
+
                                         int totalCols = workSheet.Dimension.Columns;
                                         for (int j = 3; j <= totalCols; j++)
                                         {
@@ -283,6 +323,7 @@ namespace FinResearch.Controllers
                                                     dateText = workSheet.Cells[2, j].Text.ToString();//Dates fetch
                                                     dateText = dateText + "-" + yearQuarterText.Substring(0, 4);
                                                     dateFormatted = DateTime.ParseExact(dateText, "dd-MMM-yyyy", CultureInfo.InvariantCulture);
+                                                    yearQuarterText = workSheet.Cells[1, j].Value.ToString();//Years or Quarters text fetch
                                                 }
                                                 else
                                                 {
@@ -294,8 +335,8 @@ namespace FinResearch.Controllers
                                                 continue;
                                             }
 
-                                            long currentStatementID = 0;
-                                            var finStatement = _context.FinanceStatements.FirstOrDefault(m => m.CompanyId == company.CompanyId && m.TransactionDate.Date == dateFormatted.Date && m.Quarter.Contains(yearQuarterText) && m.IsActive == true);
+                                            long currentBSStatementID = 0;
+                                            var finStatement = _context.FinanceStatements.FirstOrDefault(m => m.CompanyId == company.CompanyId && m.TransactionDate.Date == dateFormatted.Date && m.Quarter.ToLower().Trim().Equals(yearQuarterText.ToLower().Trim()) && m.IsActive == true);
                                             if (finStatement == null)//New Year / Quarter Date to be added
                                             {
                                                 finStatement = new FinanceStatement();
@@ -306,17 +347,17 @@ namespace FinResearch.Controllers
                                                 finStatement.CreatedDate = DateTime.Now;
                                                 _context.FinanceStatements.Add(finStatement);
                                                 _context.SaveChanges();
-                                                currentStatementID = finStatement.StatementId;
+                                                currentBSStatementID = finStatement.StatementId;
                                             }
                                             else
                                             {
-                                                currentStatementID = finStatement.StatementId;
+                                                currentBSStatementID = finStatement.StatementId;
                                             }
                                             if (workSheet.Cells[i, j].Value != null)
                                             {
                                                 var dataValue = workSheet.Cells[i, j].Value.ToString();//data values fetch
 
-                                                var BS = _context.BalanceSheets.FirstOrDefault(m => m.StatementId == currentStatementID && m.LineItemId == currentLineItemID && m.IsActive == true);
+                                                var BS = _context.BalanceSheets.FirstOrDefault(m => m.StatementId == currentBSStatementID && m.LineItemId == currentLineItemID && m.IsActive == true);
                                                 if (BS != null)
                                                 {
                                                     BS.ItemValue = dataValue;
@@ -329,7 +370,7 @@ namespace FinResearch.Controllers
                                                     BS = new BalanceSheet();
                                                     BS.ItemValue = dataValue;
                                                     BS.LineItemId = currentLineItemID;
-                                                    BS.StatementId = currentStatementID;
+                                                    BS.StatementId = currentBSStatementID;
                                                     BS.IsActive = true;
                                                     BS.CreatedDate = DateTime.Now;
                                                     _context.BalanceSheets.Add(BS);
@@ -338,7 +379,7 @@ namespace FinResearch.Controllers
                                             }
                                             else
                                             {
-                                                var BS = _context.BalanceSheets.FirstOrDefault(m => m.StatementId == currentStatementID && m.LineItemId == currentLineItemID && m.IsActive == true);
+                                                var BS = _context.BalanceSheets.FirstOrDefault(m => m.StatementId == currentBSStatementID && m.LineItemId == currentLineItemID && m.IsActive == true);
                                                 if (BS != null)
                                                 {
                                                     BS.ItemValue = null;
@@ -351,7 +392,7 @@ namespace FinResearch.Controllers
                                                     BS = new BalanceSheet();
                                                     BS.ItemValue = null;
                                                     BS.LineItemId = currentLineItemID;
-                                                    BS.StatementId = currentStatementID;
+                                                    BS.StatementId = currentBSStatementID;
                                                     BS.IsActive = true;
                                                     BS.CreatedDate = DateTime.Now;
                                                     _context.BalanceSheets.Add(BS);
@@ -360,10 +401,38 @@ namespace FinResearch.Controllers
                                             }
                                         }
                                     }
+                                }
+                            }
 
-                                    //CF Insertion/Updation
-                                    if (category.CategoryName.Equals("CF"))
+                            //CF Insertion/Updation
+                            if (category != null && category.CategoryName.Equals("CF"))
+                            {
+                                for (int i = 4; i <= totalRows; i++)
+                                {
+                                    if (workSheet.Cells[i, 1].Value != null)
                                     {
+                                        var LineItemText = workSheet.Cells[i, 1].Value.ToString();
+                                        if (LineItemText.ToLower().Trim().Equals("check"))
+                                        {
+                                            continue;
+                                        }
+                                        else if (LineItemText.EndsWith(':'))
+                                        {
+                                            var parentLineItem = _context.LineItems.FirstOrDefault(m => m.CategoryId == category.CategoryId && m.LineItemText == LineItemText && m.ParentLineItemId == null && m.IsActive == true);
+                                            if (parentLineItem != null)
+                                            {
+                                                currentParentLineItemID = parentLineItem.LineItemId;
+                                            }
+                                            continue;
+                                        }
+                                        var lineItem = _context.LineItems.FirstOrDefault(m => m.CategoryId == category.CategoryId && m.LineItemText == LineItemText && m.ParentLineItemId == currentParentLineItemID && m.IsActive == true);
+                                        if (lineItem != null)
+                                        {
+                                            currentLineItemID = lineItem.LineItemId;
+                                            currentParentLineItemID = lineItem.ParentLineItemId;
+                                        }
+
+
                                         int totalCols = workSheet.Dimension.Columns;
                                         for (int j = 3; j <= totalCols; j++)
                                         {
@@ -385,6 +454,7 @@ namespace FinResearch.Controllers
                                                     dateText = workSheet.Cells[2, j].Text.ToString();//Dates fetch
                                                     dateText = dateText + "-" + yearQuarterText.Substring(0, 4);
                                                     dateFormatted = DateTime.ParseExact(dateText, "dd-MMM-yyyy", CultureInfo.InvariantCulture);
+                                                    yearQuarterText = workSheet.Cells[1, j].Value.ToString();//Years or Quarters text fetch
                                                 }
                                                 else
                                                 {
@@ -396,8 +466,8 @@ namespace FinResearch.Controllers
                                                 continue;
                                             }
 
-                                            long currentStatementID = 0;
-                                            var finStatement = _context.FinanceStatements.FirstOrDefault(m => m.CompanyId == company.CompanyId && m.TransactionDate.Date == dateFormatted.Date && m.Quarter.Contains(yearQuarterText) && m.IsActive == true);
+                                            long currentCFStatementID = 0;
+                                            var finStatement = _context.FinanceStatements.FirstOrDefault(m => m.CompanyId == company.CompanyId && m.TransactionDate.Date == dateFormatted.Date && m.Quarter.ToLower().Trim().Equals(yearQuarterText.ToLower().Trim()) && m.IsActive == true);
                                             if (finStatement == null)//New Year / Quarter Date to be added
                                             {
                                                 finStatement = new FinanceStatement();
@@ -409,17 +479,17 @@ namespace FinResearch.Controllers
                                                 finStatement.IsActive = true;
                                                 _context.FinanceStatements.Add(finStatement);
                                                 _context.SaveChanges();
-                                                currentStatementID = finStatement.StatementId;
+                                                currentCFStatementID = finStatement.StatementId;
                                             }
                                             else
                                             {
-                                                currentStatementID = finStatement.StatementId;
+                                                currentCFStatementID = finStatement.StatementId;
                                             }
                                             if (workSheet.Cells[i, j].Value != null)
                                             {
                                                 var dataValue = workSheet.Cells[i, j].Value.ToString();//data values fetch
 
-                                                var CF = _context.CashFlows.FirstOrDefault(m => m.StatementId == currentStatementID && m.LineItemId == currentLineItemID && m.IsActive == true);
+                                                var CF = _context.CashFlows.FirstOrDefault(m => m.StatementId == currentCFStatementID && m.LineItemId == currentLineItemID && m.IsActive == true);
                                                 if (CF != null)
                                                 {
                                                     CF.ItemValue = dataValue;
@@ -432,7 +502,7 @@ namespace FinResearch.Controllers
                                                     CF = new CashFlow();
                                                     CF.ItemValue = dataValue;
                                                     CF.LineItemId = currentLineItemID;
-                                                    CF.StatementId = currentStatementID;
+                                                    CF.StatementId = currentCFStatementID;
                                                     CF.IsActive = true;
                                                     CF.CreatedDate = DateTime.Now;
                                                     _context.CashFlows.Add(CF);
@@ -441,10 +511,38 @@ namespace FinResearch.Controllers
                                             }
                                         }
                                     }
+                                }
+                            }
 
-                                    //ISNG Insertion/Updation
-                                    if (category.CategoryName.Equals("IS_NG"))
+                            //ISNG Insertion/Updation
+                            if (category != null && category.CategoryName.Equals("IS_NG"))
+                            {
+                                for (int i = 4; i <= totalRows; i++)
+                                {
+                                    if (workSheet.Cells[i, 1].Value != null)
                                     {
+                                        var LineItemText = workSheet.Cells[i, 1].Value.ToString();
+                                        if (LineItemText.ToLower().Trim().Equals("check"))
+                                        {
+                                            continue;
+                                        }
+                                        else if (LineItemText.EndsWith(':'))
+                                        {
+                                            var parentLineItem = _context.LineItems.FirstOrDefault(m => m.CategoryId == category.CategoryId && m.LineItemText == LineItemText && m.ParentLineItemId == null && m.IsActive == true);
+                                            if (parentLineItem != null)
+                                            {
+                                                currentParentLineItemID = parentLineItem.LineItemId;
+                                            }
+                                            continue;
+                                        }
+                                        var lineItem = _context.LineItems.FirstOrDefault(m => m.CategoryId == category.CategoryId && m.LineItemText == LineItemText && m.ParentLineItemId == currentParentLineItemID && m.IsActive == true);
+                                        if (lineItem != null)
+                                        {
+                                            currentLineItemID = lineItem.LineItemId;
+                                            currentParentLineItemID = lineItem.ParentLineItemId;
+                                        }
+
+
                                         int totalCols = workSheet.Dimension.Columns;
                                         for (int j = 3; j <= totalCols; j++)
                                         {
@@ -466,6 +564,7 @@ namespace FinResearch.Controllers
                                                     dateText = workSheet.Cells[2, j].Text.ToString();//Dates fetch
                                                     dateText = dateText + "-" + yearQuarterText.Substring(0, 4);
                                                     dateFormatted = DateTime.ParseExact(dateText, "dd-MMM-yyyy", CultureInfo.InvariantCulture);
+                                                    yearQuarterText = workSheet.Cells[1, j].Value.ToString();//Years or Quarters text fetch
                                                 }
                                                 else
                                                 {
@@ -477,8 +576,8 @@ namespace FinResearch.Controllers
                                                 continue;
                                             }
 
-                                            long currentStatementID = 0;
-                                            var finStatement = _context.FinanceStatements.FirstOrDefault(m => m.CompanyId == company.CompanyId && m.TransactionDate.Date == dateFormatted.Date && m.Quarter.Contains(yearQuarterText) && m.IsActive == true);
+                                            long currentISNGStatementID = 0;
+                                            var finStatement = _context.FinanceStatements.FirstOrDefault(m => m.CompanyId == company.CompanyId && m.TransactionDate.Date == dateFormatted.Date && m.Quarter.ToLower().Trim().Equals(yearQuarterText.ToLower().Trim()) && m.IsActive == true);
                                             if (finStatement == null)//New Year / Quarter Date to be added
                                             {
                                                 finStatement = new FinanceStatement();
@@ -490,19 +589,19 @@ namespace FinResearch.Controllers
                                                 finStatement.IsActive = true;
                                                 _context.FinanceStatements.Add(finStatement);
                                                 _context.SaveChanges();
-                                                currentStatementID = finStatement.StatementId;
+                                                currentISNGStatementID = finStatement.StatementId;
                                             }
                                             else
                                             {
-                                                currentStatementID = finStatement.StatementId;
+                                                currentISNGStatementID = finStatement.StatementId;
                                             }
                                             if (workSheet.Cells[i, j].Value != null)
                                             {
                                                 var dataValue = workSheet.Cells[i, j].Value.ToString();//data values fetch
 
-                                                var ISNG = _context.ISNonGAAPs.FirstOrDefault(m => m.StatementId == currentStatementID && m.LineItemId == currentLineItemID && m.IsActive == true);
+                                                var ISNG = _context.ISNonGAAPs.FirstOrDefault(m => m.StatementId == currentISNGStatementID && m.LineItemId == currentLineItemID && m.IsActive == true);
                                                 if (ISNG != null)
-                                                {                                                                                                
+                                                {
                                                     ISNG.ItemValue = dataValue;
                                                     ISNG.ModifiedDate = DateTime.Now;
                                                     _context.ISNonGAAPs.Update(ISNG);
@@ -513,7 +612,7 @@ namespace FinResearch.Controllers
                                                     ISNG = new ISNonGAAP();
                                                     ISNG.ItemValue = dataValue;
                                                     ISNG.LineItemId = currentLineItemID;
-                                                    ISNG.StatementId = currentStatementID;
+                                                    ISNG.StatementId = currentISNGStatementID;
                                                     ISNG.IsActive = true;
                                                     ISNG.CreatedDate = DateTime.Now;
                                                     _context.ISNonGAAPs.Add(ISNG);
@@ -522,7 +621,7 @@ namespace FinResearch.Controllers
                                             }
                                             else
                                             {
-                                                var ISNG = _context.ISNonGAAPs.FirstOrDefault(m => m.StatementId == currentStatementID && m.LineItemId == currentLineItemID && m.IsActive == true);
+                                                var ISNG = _context.ISNonGAAPs.FirstOrDefault(m => m.StatementId == currentISNGStatementID && m.LineItemId == currentLineItemID && m.IsActive == true);
                                                 if (ISNG != null)
                                                 {
                                                     ISNG.ItemValue = null;
@@ -535,7 +634,7 @@ namespace FinResearch.Controllers
                                                     ISNG = new ISNonGAAP();
                                                     ISNG.ItemValue = null;
                                                     ISNG.LineItemId = currentLineItemID;
-                                                    ISNG.StatementId = currentStatementID;
+                                                    ISNG.StatementId = currentISNGStatementID;
                                                     ISNG.IsActive = true;
                                                     ISNG.CreatedDate = DateTime.Now;
                                                     _context.ISNonGAAPs.Add(ISNG);
@@ -544,10 +643,37 @@ namespace FinResearch.Controllers
                                             }
                                         }
                                     }
+                                }
+                            }
 
-                                    //RD Insertion/Updation
-                                    if (category.CategoryName.Equals("RD"))
+                            //RD Insertion/Updation
+                            if (category != null && category.CategoryName.Equals("RD"))
+                            {
+                                for (int i = 4; i <= totalRows; i++)
+                                {
+                                    if (workSheet.Cells[i, 1].Value != null)
                                     {
+                                        var LineItemText = workSheet.Cells[i, 1].Value.ToString();
+                                        if (LineItemText.ToLower().Trim().Equals("check"))
+                                        {
+                                            continue;
+                                        }
+                                        else if (LineItemText.EndsWith(':'))
+                                        {
+                                            var parentLineItem = _context.LineItems.FirstOrDefault(m => m.CategoryId == category.CategoryId && m.LineItemText == LineItemText && m.ParentLineItemId == null && m.IsActive == true);
+                                            if (parentLineItem != null)
+                                            {
+                                                currentParentLineItemID = parentLineItem.LineItemId;
+                                            }
+                                            continue;
+                                        }
+                                        var lineItem = _context.LineItems.FirstOrDefault(m => m.CategoryId == category.CategoryId && m.LineItemText == LineItemText && m.ParentLineItemId == currentParentLineItemID && m.IsActive == true);
+                                        if (lineItem != null)
+                                        {
+                                            currentLineItemID = lineItem.LineItemId;
+                                            currentParentLineItemID = lineItem.ParentLineItemId;
+                                        }
+
                                         int totalCols = workSheet.Dimension.Columns;
                                         for (int j = 3; j <= totalCols; j++)
                                         {
@@ -571,6 +697,7 @@ namespace FinResearch.Controllers
                                                         dateText = workSheet.Cells[2, j].Text.ToString();//Dates fetch
                                                         dateText = dateText + "-" + yearQuarterText.Substring(0, 4);
                                                         dateFormatted = DateTime.ParseExact(dateText, "dd-MMM-yyyy", CultureInfo.InvariantCulture);
+                                                        yearQuarterText = workSheet.Cells[1, j].Value.ToString();//Years or Quarters text fetch
                                                     }
                                                     else
                                                     {
@@ -587,8 +714,8 @@ namespace FinResearch.Controllers
                                                 continue;
                                             }
 
-                                            long currentStatementID = 0;
-                                            var finStatement = _context.FinanceStatements.FirstOrDefault(m => m.CompanyId == company.CompanyId && m.TransactionDate.Date == dateFormatted.Date && m.Quarter.Contains(yearQuarterText) && m.IsActive == true);
+                                            long currentRDStatementID = 0;
+                                            var finStatement = _context.FinanceStatements.FirstOrDefault(m => m.CompanyId == company.CompanyId && m.TransactionDate.Date == dateFormatted.Date && m.Quarter.ToLower().Trim().Equals(yearQuarterText.ToLower().Trim()) && m.IsActive == true);
                                             if (finStatement == null)//New Year / Quarter Date to be added
                                             {
                                                 finStatement = new FinanceStatement();
@@ -599,17 +726,17 @@ namespace FinResearch.Controllers
                                                 finStatement.CreatedDate = DateTime.Now;
                                                 _context.FinanceStatements.Add(finStatement);
                                                 _context.SaveChanges();
-                                                currentStatementID = finStatement.StatementId;
+                                                currentRDStatementID = finStatement.StatementId;
                                             }
                                             else
                                             {
-                                                currentStatementID = finStatement.StatementId;
+                                                currentRDStatementID = finStatement.StatementId;
                                             }
                                             if (workSheet.Cells[i, j].Value != null)
                                             {
                                                 var dataValue = workSheet.Cells[i, j].Value.ToString();//data values fetch
 
-                                                var RD = _context.RDs.FirstOrDefault(m => m.StatementId == currentStatementID && m.LineItemId == currentLineItemID && m.IsActive == true);
+                                                var RD = _context.RDs.FirstOrDefault(m => m.StatementId == currentRDStatementID && m.LineItemId == currentLineItemID && m.IsActive == true);
                                                 if (RD != null)
                                                 {
                                                     RD.ItemValue = dataValue;
@@ -622,7 +749,7 @@ namespace FinResearch.Controllers
                                                     RD = new RD();
                                                     RD.ItemValue = dataValue;
                                                     RD.LineItemId = currentLineItemID;
-                                                    RD.StatementId = currentStatementID;
+                                                    RD.StatementId = currentRDStatementID;
                                                     RD.IsActive = true;
                                                     RD.CreatedDate = DateTime.Now;
                                                     _context.RDs.Add(RD);
@@ -631,7 +758,7 @@ namespace FinResearch.Controllers
                                             }
                                             else
                                             {
-                                                var RD = _context.RDs.FirstOrDefault(m => m.StatementId == currentStatementID && m.LineItemId == currentLineItemID && m.IsActive == true);
+                                                var RD = _context.RDs.FirstOrDefault(m => m.StatementId == currentRDStatementID && m.LineItemId == currentLineItemID && m.IsActive == true);
                                                 if (RD != null)
                                                 {
                                                     RD.ItemValue = null;
@@ -644,7 +771,7 @@ namespace FinResearch.Controllers
                                                     RD = new RD();
                                                     RD.ItemValue = null;
                                                     RD.LineItemId = currentLineItemID;
-                                                    RD.StatementId = currentStatementID;
+                                                    RD.StatementId = currentRDStatementID;
                                                     RD.IsActive = true;
                                                     RD.CreatedDate = DateTime.Now;
                                                     _context.RDs.Add(RD);
@@ -653,10 +780,10 @@ namespace FinResearch.Controllers
                                             }
                                         }
                                     }
+
                                 }
-                                else
-                                    continue;
                             }
+
                         }
                     }
                     ViewBag.Message = "Data Imported Successfully.";

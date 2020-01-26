@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using FinResearch.Models;
+using System.Data.SqlClient;
+using System.Data;
 
 namespace FinResearch.Controllers
 {
@@ -23,13 +25,15 @@ namespace FinResearch.Controllers
         {
 			var p= await _context.FinQuery.FromSqlRaw("exec financedata").ToListAsync();
 			return View(await _context.FinanceStatements.ToListAsync());
-		
-			
         }
 
 		public ActionResult GetStatements()
 		{
-            var p = _context.FinQuery.FromSqlRaw("exec financedata").ToList();
+            var parameters = new[] {
+            new SqlParameter("@CompanyId", SqlDbType.Int) { Direction = ParameterDirection.Input, Value = 2 },
+            new SqlParameter("@CategoryId", SqlDbType.Int) { Direction = ParameterDirection.Input, Value = 1 }
+            };
+            var p = _context.FinQuery.FromSqlRaw("exec financedata 2, 1").ToList();
             return Json(p.FirstOrDefault().Records);
 		}
 
