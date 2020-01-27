@@ -207,10 +207,13 @@ namespace FinResearch.Controllers
                                             var finStatement = _context.FinanceStatements.FirstOrDefault(m => m.CompanyId == company.CompanyId && m.TransactionDate.Date == dateFormatted.Date && m.Quarter.ToLower().Trim().Equals(yearQuarterText.ToLower().Trim()) && m.IsActive == true);
                                             if (finStatement == null)//New Year / Quarter Date to be added
                                             {
+                                                int maxOrderNumber = _context.FinanceStatements.Select(p => p.OrderNo.Value).DefaultIfEmpty(0).Max()+1;
+
                                                 finStatement = new FinanceStatement();
                                                 finStatement.CompanyId = company.CompanyId;
                                                 finStatement.TransactionDate = dateFormatted;
                                                 finStatement.Quarter = yearQuarterText;
+                                                finStatement.OrderNo = maxOrderNumber;
                                                 finStatement.IsHistorical = DateTime.Now.Date.CompareTo(dateFormatted.Date) > 0;
                                                 finStatement.IsActive = true;
                                                 finStatement.CreatedDate = DateTime.Now;
@@ -339,10 +342,13 @@ namespace FinResearch.Controllers
                                             var finStatement = _context.FinanceStatements.FirstOrDefault(m => m.CompanyId == company.CompanyId && m.TransactionDate.Date == dateFormatted.Date && m.Quarter.ToLower().Trim().Equals(yearQuarterText.ToLower().Trim()) && m.IsActive == true);
                                             if (finStatement == null)//New Year / Quarter Date to be added
                                             {
+                                                int maxOrderNumber = _context.FinanceStatements.Select(p => p.OrderNo.Value).DefaultIfEmpty(0).Max() + 1;
+
                                                 finStatement = new FinanceStatement();
                                                 finStatement.CompanyId = company.CompanyId;
                                                 finStatement.TransactionDate = dateFormatted;
                                                 finStatement.Quarter = yearQuarterText;
+                                                finStatement.OrderNo = maxOrderNumber;
                                                 finStatement.IsHistorical = DateTime.Now.Date.CompareTo(dateFormatted.Date) > 0;
                                                 finStatement.CreatedDate = DateTime.Now;
                                                 _context.FinanceStatements.Add(finStatement);
@@ -470,10 +476,13 @@ namespace FinResearch.Controllers
                                             var finStatement = _context.FinanceStatements.FirstOrDefault(m => m.CompanyId == company.CompanyId && m.TransactionDate.Date == dateFormatted.Date && m.Quarter.ToLower().Trim().Equals(yearQuarterText.ToLower().Trim()) && m.IsActive == true);
                                             if (finStatement == null)//New Year / Quarter Date to be added
                                             {
+                                                int maxOrderNumber = _context.FinanceStatements.Select(p => p.OrderNo.Value).DefaultIfEmpty(0).Max() + 1;
+
                                                 finStatement = new FinanceStatement();
                                                 finStatement.CompanyId = company.CompanyId;
                                                 finStatement.TransactionDate = dateFormatted;
                                                 finStatement.Quarter = yearQuarterText;
+                                                finStatement.OrderNo = maxOrderNumber;
                                                 finStatement.IsHistorical = DateTime.Now.Date.CompareTo(dateFormatted.Date) > 0;
                                                 finStatement.CreatedDate = DateTime.Now;
                                                 finStatement.IsActive = true;
@@ -580,10 +589,13 @@ namespace FinResearch.Controllers
                                             var finStatement = _context.FinanceStatements.FirstOrDefault(m => m.CompanyId == company.CompanyId && m.TransactionDate.Date == dateFormatted.Date && m.Quarter.ToLower().Trim().Equals(yearQuarterText.ToLower().Trim()) && m.IsActive == true);
                                             if (finStatement == null)//New Year / Quarter Date to be added
                                             {
+                                                int maxOrderNumber = _context.FinanceStatements.Select(p => p.OrderNo.Value).DefaultIfEmpty(0).Max() + 1;
+
                                                 finStatement = new FinanceStatement();
                                                 finStatement.CompanyId = company.CompanyId;
                                                 finStatement.TransactionDate = dateFormatted;
                                                 finStatement.Quarter = yearQuarterText;
+                                                finStatement.OrderNo = maxOrderNumber;
                                                 finStatement.IsHistorical = DateTime.Now.Date.CompareTo(dateFormatted.Date) > 0;
                                                 finStatement.CreatedDate = DateTime.Now;
                                                 finStatement.IsActive = true;
@@ -718,10 +730,13 @@ namespace FinResearch.Controllers
                                             var finStatement = _context.FinanceStatements.FirstOrDefault(m => m.CompanyId == company.CompanyId && m.TransactionDate.Date == dateFormatted.Date && m.Quarter.ToLower().Trim().Equals(yearQuarterText.ToLower().Trim()) && m.IsActive == true);
                                             if (finStatement == null)//New Year / Quarter Date to be added
                                             {
+                                                int maxOrderNumber = _context.FinanceStatements.Select(p => p.OrderNo.Value).DefaultIfEmpty(0).Max() + 1;
+
                                                 finStatement = new FinanceStatement();
                                                 finStatement.CompanyId = company.CompanyId;
                                                 finStatement.TransactionDate = dateFormatted;
                                                 finStatement.Quarter = yearQuarterText;
+                                                finStatement.OrderNo = maxOrderNumber;
                                                 finStatement.IsHistorical = DateTime.Now.Date.CompareTo(dateFormatted.Date) > 0;
                                                 finStatement.CreatedDate = DateTime.Now;
                                                 _context.FinanceStatements.Add(finStatement);
