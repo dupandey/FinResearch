@@ -8,16 +8,18 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
 <script src="https://bossanova.uk/jexcel/v3/jexcel.js"></script>
+
 <link rel="stylesheet" href="https://bossanova.uk/jexcel/v3/jexcel.css" type="text/css" />
 
 <script src="https://bossanova.uk/jsuites/v2/jsuites.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/numeral.js/2.0.6/numeral.min.js"></script>
 <link rel="stylesheet" href="https://bossanova.uk/jsuites/v2/jsuites.css" type="text/css" />
 
 <script>
 	var serverdata = [];
 	$.ajax({
 		type: "GET",
-		url: "https://localhost:44338/FinanceStatements/GetStatements",
+		url: "/FinanceStatements/GetStatements",
 		dataType: "json",
 		async: false,
 		contentType: 'application/json; charset=utf-8',
@@ -100,15 +102,21 @@
 		minDimensions: [13, 13],
 		tableOverflow: true,
 		tableWidth: "1400px",
-		tableHeight:'300px',
+		tableHeight:"800p",
 		wordWrap: true,
 		data: valuearray,
 		colHeaders: longest,
 		nestedHeaders: [arrNested],
 		updateTable: function (instance, cell, col, row, val, label, cellName) {
-			if (cell.innerText.indexOf('-')==0) {
-				var txt = $(cell).text()
-					$(cell).html('(' + txt+')');
+			if (col > 0) {
+				if (val != '') {
+					var txt = numeral(val).format('0,0.0');
+					$(cell).html(' ' + txt);
+					if (cell.innerText.indexOf('-') == 0) {
+						var txt = $(cell).text()
+						$(cell).html('(' + txt + ')');
+					}
+				}
 			}
 			if (col == 0) {
 				$(cell).css("text-align", "left");
