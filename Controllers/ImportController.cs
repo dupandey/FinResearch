@@ -105,6 +105,18 @@ namespace FinResearch.Controllers
                                             newLine.LineItemText = LineItemText;
                                             newLine.ParentLineItemId = null;
                                             newLine.IsActive = true;
+                                            if(workSheet.Cells[i, 1].Style.Font.Bold)
+                                            {
+                                                newLine.IsBold = true;
+                                            }
+                                            if(workSheet.Cells[i, 1].Style.Font.UnderLine)
+                                            {
+                                                newLine.IsUnderline = true;
+                                            }
+                                            if (LineItemText.Contains('$'))
+                                            {
+                                                newLine.IsDollar = true;
+                                            }
                                             newLine.CategoryId = category.CategoryId;
                                             newLine.CreatedDate = DateTime.Now;
                                             _context.LineItems.Add(newLine);
@@ -120,6 +132,18 @@ namespace FinResearch.Controllers
                                     {
                                         lineItem.LineItemText = LineItemText;
                                         lineItem.ModifiedDate = DateTime.Now;
+                                        if (workSheet.Cells[i, 1].Style.Font.Bold)
+                                        {
+                                            lineItem.IsBold = true;
+                                        }
+                                        if (workSheet.Cells[i, 1].Style.Font.UnderLine)
+                                        {
+                                            lineItem.IsUnderline = true;
+                                        }
+                                        if (LineItemText.Contains('$'))
+                                        {
+                                            lineItem.IsDollar = true;
+                                        }
                                         _context.LineItems.Update(lineItem);
                                         _context.SaveChanges();
                                         currentLineItemID = lineItem.LineItemId;
@@ -131,6 +155,18 @@ namespace FinResearch.Controllers
                                         newLine.LineItemText = LineItemText;
                                         newLine.ParentLineItemId = currentParentLineItemID;
                                         newLine.IsActive = true;
+                                        if (workSheet.Cells[i, 1].Style.Font.Bold)
+                                        {
+                                            newLine.IsBold = true;
+                                        }
+                                        if (workSheet.Cells[i, 1].Style.Font.UnderLine)
+                                        {
+                                            newLine.IsUnderline = true;
+                                        }
+                                        if (LineItemText.Contains('$'))
+                                        {
+                                            newLine.IsDollar = true;
+                                        }
                                         newLine.CategoryId = category.CategoryId;
                                         newLine.CreatedDate = DateTime.Now;
                                         _context.LineItems.Add(newLine);

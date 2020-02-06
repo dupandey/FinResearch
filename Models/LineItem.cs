@@ -17,6 +17,9 @@ namespace FinResearch.Models
         public Category Category { get; set; }
         public int CategoryId { get; set; }
         public bool IsActive { get; set; }
+        public bool IsBold { get; set; }
+        public bool IsDollar { get; set; }
+        public bool IsUnderline { get; set; }
         public DateTime? CreatedDate { get; set; }
         public DateTime? ModifiedDate { get; set; }
     }
