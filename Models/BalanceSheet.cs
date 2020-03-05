@@ -7,16 +7,14 @@ using System.Threading.Tasks;
 
 namespace FinResearch.Models
 {
-    [Table("BalanceSheet")]
-    public class BalanceSheet
+    [Table("BalanceSheets")]
+    public class BalanceSheets
     {
         [Key]
         public long BalanceSheetId { get; set; }
-        //public FinanceStatement FinanceStatement { get; set; }
-        public long StatementId { get; set; }
-        //public LineItem LineItem { get; set; }
-        public long LineItemId { get; set; }
-        public string ItemValue { get; set; }        
+        public int CompanyId { get; set; }
+        public int CategoryId { get; set; }
+        public string Payload { get; set; }        
         public bool IsActive { get; set; }
         public DateTime ? CreatedDate { get; set; }
         public DateTime? ModifiedDate { get; set; }

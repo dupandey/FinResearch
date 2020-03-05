@@ -9,6 +9,8 @@ using Microsoft.AspNetCore.Http;
 using OfficeOpenXml;
 using FinResearch.Models;
 using System.Globalization;
+using Newtonsoft.Json;
+using System.Text;
 
 namespace FinResearch.Controllers
 {
@@ -67,7 +69,7 @@ namespace FinResearch.Controllers
                     var company = _context.Companies.FirstOrDefault(m => m.CompanyCode == companyCode && m.IsActive == true);
                     if (company == null)
                     {
-                        ViewBag.Message = companyName + " company not found. So file can't be uploaded, Please contact Admin to add.";
+                        ViewBag.Message = companyName + " company not found. So file can't be uploaded, Please contact Admin to add new.";
                         return View("Index");
                     }
 
@@ -80,107 +82,12 @@ namespace FinResearch.Controllers
                             var category = _context.Categories.FirstOrDefault(m => m.CategoryName == categoryName && m.IsActive == true);
 
                             /// Addition of each Line Items as per each excel sheets
-                            long? currentParentLineItemID = null;
-                            long currentLineItemID = 0;
-
-                            for (int i = 4; i <= totalRows; i++)
-                            {
-                                if (category != null && workSheet.Cells[i, 1].Value != null)
-                                {
-                                    var LineItemText = workSheet.Cells[i, 1].Value.ToString();
-                                    if (LineItemText.ToLower().Trim().Equals("check"))
-                                    {
-                                        continue;
-                                    }
-                                    else if (LineItemText.EndsWith(':'))
-                                    {
-                                        var parentLineItem = _context.LineItems.FirstOrDefault(m => m.CategoryId == category.CategoryId && m.LineItemText == LineItemText && m.ParentLineItemId == null && m.IsActive == true);
-                                        if (parentLineItem != null)
-                                        {
-                                            currentParentLineItemID = parentLineItem.LineItemId;
-                                        }
-                                        else
-                                        {
-                                            LineItem newLine = new LineItem();
-                                            newLine.LineItemText = LineItemText;
-                                            newLine.ParentLineItemId = null;
-                                            newLine.IsActive = true;
-                                            if(workSheet.Cells[i, 1].Style.Font.Bold)
-                                            {
-                                                newLine.IsBold = true;
-                                            }
-                                            if(workSheet.Cells[i, 1].Style.Font.UnderLine)
-                                            {
-                                                newLine.IsUnderline = true;
-                                            }
-                                            if (LineItemText.Contains('$'))
-                                            {
-                                                newLine.IsDollar = true;
-                                            }
-                                            newLine.CategoryId = category.CategoryId;
-                                            newLine.CreatedDate = DateTime.Now;
-                                            _context.LineItems.Add(newLine);
-                                            _context.SaveChanges();
-                                            currentLineItemID = newLine.LineItemId;
-                                            currentParentLineItemID = newLine.LineItemId;
-                                        }
-                                        continue;
-                                    }
-
-                                    var lineItem = _context.LineItems.FirstOrDefault(m => m.CategoryId == category.CategoryId && m.LineItemText == LineItemText && m.ParentLineItemId == currentParentLineItemID && m.IsActive == true);
-                                    if (lineItem != null)
-                                    {
-                                        lineItem.LineItemText = LineItemText;
-                                        lineItem.ModifiedDate = DateTime.Now;
-                                        if (workSheet.Cells[i, 1].Style.Font.Bold)
-                                        {
-                                            lineItem.IsBold = true;
-                                        }
-                                        if (workSheet.Cells[i, 1].Style.Font.UnderLine)
-                                        {
-                                            lineItem.IsUnderline = true;
-                                        }
-                                        if (LineItemText.Contains('$'))
-                                        {
-                                            lineItem.IsDollar = true;
-                                        }
-                                        _context.LineItems.Update(lineItem);
-                                        _context.SaveChanges();
-                                        currentLineItemID = lineItem.LineItemId;
-                                        currentParentLineItemID = lineItem.ParentLineItemId;
-                                    }
-                                    else if (lineItem == null)
-                                    {
-                                        LineItem newLine = new LineItem();
-                                        newLine.LineItemText = LineItemText;
-                                        newLine.ParentLineItemId = currentParentLineItemID;
-                                        newLine.IsActive = true;
-                                        if (workSheet.Cells[i, 1].Style.Font.Bold)
-                                        {
-                                            newLine.IsBold = true;
-                                        }
-                                        if (workSheet.Cells[i, 1].Style.Font.UnderLine)
-                                        {
-                                            newLine.IsUnderline = true;
-                                        }
-                                        if (LineItemText.Contains('$'))
-                                        {
-                                            newLine.IsDollar = true;
-                                        }
-                                        newLine.CategoryId = category.CategoryId;
-                                        newLine.CreatedDate = DateTime.Now;
-                                        _context.LineItems.Add(newLine);
-                                        _context.SaveChanges();
-                                        currentLineItemID = newLine.LineItemId;
-                                        currentParentLineItemID = newLine.ParentLineItemId;
-                                    }
-                                }
-                            }
-
                             //Different worksheets of excel datafile to be merged
                             //IS Insertion/Updation
                             if (category != null && category.CategoryName.Equals("IS"))
                             {
+                                var JSONString = new StringBuilder();
+                                JSONString.Append("[");
                                 for (int i = 4; i <= totalRows; i++)
                                 {
                                     if (workSheet.Cells[i, 1].Value != null)
@@ -190,132 +97,88 @@ namespace FinResearch.Controllers
                                         {
                                             continue;
                                         }
+                                        if (workSheet.Cells[i, 2].Value != null)
+                                        {
+                                            JSONString.Append("\"Config\":" + "\"" + workSheet.Cells[i, 2].Value + "\",");
+                                        }
                                         else if (LineItemText.EndsWith(':'))
                                         {
-                                            var parentLineItem = _context.LineItems.FirstOrDefault(m => m.CategoryId == category.CategoryId && m.LineItemText == LineItemText && m.ParentLineItemId == null && m.IsActive == true);
-                                            if (parentLineItem != null)
-                                            {
-                                                currentParentLineItemID = parentLineItem.LineItemId;
-                                            }
+                                            JSONString.Append("{");                                                                               
+                                            JSONString.Append("\"LineItem\":" + "\"" + LineItemText + "\"");
+                                            JSONString.Append("}");
                                             continue;
                                         }
-                                        var lineItem = _context.LineItems.FirstOrDefault(m => m.CategoryId == category.CategoryId && m.LineItemText == LineItemText && m.ParentLineItemId == currentParentLineItemID && m.IsActive == true);
-                                        if (lineItem != null)
-                                        {
-                                            currentLineItemID = lineItem.LineItemId;
-                                            currentParentLineItemID = lineItem.ParentLineItemId;
-                                        }
+
+                                        JSONString.Append("{");
+                                        JSONString.Append("\"LineItem\":" + "\"" + LineItemText + "\",");
 
                                         int totalCols = workSheet.Dimension.Columns;
                                         for (int j = 3; j <= totalCols; j++)
                                         {
-                                            string yearQuarterText = string.Empty;
-                                            string dateText = string.Empty;
-                                            DateTime dateFormatted = DateTime.Now;
-                                            if (workSheet.Cells[1, j].Value != null && workSheet.Cells[2, j].Text != null)
-                                            {
-                                                yearQuarterText = workSheet.Cells[1, j].Value.ToString();//Years or Quarters fetch
-
-                                                if (!string.IsNullOrEmpty(yearQuarterText) && yearQuarterText.Length >= 4)
+                                            if (j < totalCols - 1)
+                                            {                                              
+                                                if (workSheet.Cells[1, j].Value != null && workSheet.Cells[2, j].Text != null)
                                                 {
-                                                    if (yearQuarterText.Contains("Q"))
+                                                    //JSONString.Append("\"YearQuarter\":" + "\"" + workSheet.Cells[1, j].Value + "\",");
+                                                    //JSONString.Append("\"Month\":" + "\"" + workSheet.Cells[2, j].Value + "\",");
+                                                    if (workSheet.Cells[i, j].Value != null)
                                                     {
-                                                        yearQuarterText = yearQuarterText.Substring(2, 2);
-                                                        yearQuarterText = "20" + yearQuarterText;
+                                                        var dataValue = workSheet.Cells[i, j].Value.ToString();//data values fetch
+                                                        JSONString.Append("\"" + workSheet.Cells[1, j].Value + " " + workSheet.Cells[2, j].Text + "\":" + "\"" + dataValue + "\",");
                                                     }
-                                                    //Else Yearly texts
-                                                    dateText = workSheet.Cells[2, j].Text.ToString();//Dates fetch
-                                                    dateText = dateText + "-" + yearQuarterText.Substring(0, 4);
-                                                    dateFormatted = DateTime.ParseExact(dateText, "dd-MMM-yyyy", CultureInfo.InvariantCulture);
-                                                    yearQuarterText = workSheet.Cells[1, j].Value.ToString();//Years or Quarters text fetch
+                                                    else
+                                                    {
+                                                        //Blank 0 data value will be added
+                                                        JSONString.Append("\"" + workSheet.Cells[1, j].Value + " " + workSheet.Cells[2, j].Text + "\":" + "\"0\"");
+                                                    }
                                                 }
-                                                else
+                                            }
+                                            else if (j == totalCols - 1)
+                                            {                                               
+                                                if (workSheet.Cells[1, j].Value != null && workSheet.Cells[2, j].Text != null)
                                                 {
-                                                    continue;
-                                                }
-                                            }
-                                            else
-                                            {
-                                                continue;
-                                            }
+                                                    //JSONString.Append("\"YearQuarter\":" + "\"" + workSheet.Cells[1, j].Value + "\"");
+                                                    //JSONString.Append("\"Month\":" + "\"" + workSheet.Cells[2, j].Value + "\"");
+                                                    if (workSheet.Cells[i, j].Value != null)
+                                                    {
+                                                        var dataValue = workSheet.Cells[i, j].Value.ToString();//data values fetch
+                                                        JSONString.Append("\"" + workSheet.Cells[1, j].Value + " " + workSheet.Cells[2, j].Text + "\":" + "\"" + dataValue + "\"");
+                                                    }
+                                                    else
+                                                    {
+                                                        //Blank 0 data value will be added
+                                                        JSONString.Append("\"" + workSheet.Cells[1, j].Value + " " + workSheet.Cells[2, j].Text + "\":" + "\"0\"");
+                                                    }
 
-                                            long currentISStatementID = 0;
-                                            var finStatement = _context.FinanceStatements.FirstOrDefault(m => m.CompanyId == company.CompanyId && m.TransactionDate.Date == dateFormatted.Date && m.Quarter.ToLower().Trim().Equals(yearQuarterText.ToLower().Trim()) && m.IsActive == true);
-                                            if (finStatement == null)//New Year / Quarter Date to be added
-                                            {
-                                                int maxOrderNumber = _context.FinanceStatements.Select(p => p.OrderNo.Value).DefaultIfEmpty(0).Max()+1;
-
-                                                finStatement = new FinanceStatement();
-                                                finStatement.CompanyId = company.CompanyId;
-                                                finStatement.TransactionDate = dateFormatted;
-                                                finStatement.Quarter = yearQuarterText;
-                                                finStatement.OrderNo = maxOrderNumber;
-                                                finStatement.IsHistorical = DateTime.Now.Date.CompareTo(dateFormatted.Date) > 0;
-                                                finStatement.IsActive = true;
-                                                finStatement.CreatedDate = DateTime.Now;
-                                                _context.FinanceStatements.Add(finStatement);
-                                                _context.SaveChanges();
-                                                currentISStatementID = finStatement.StatementId;
-                                            }
-                                            else
-                                            {
-                                                currentISStatementID = finStatement.StatementId;
-                                            }
-
-                                            if (workSheet.Cells[i, j].Value != null)
-                                            {
-                                                var dataValue = workSheet.Cells[i, j].Value.ToString();//data values fetch
-
-                                                var IS = _context.ISs.Where(m => m.StatementId == currentISStatementID && m.LineItemId == currentLineItemID && m.IsActive == true).FirstOrDefault();
-                                                if (IS != null)
-                                                {
-                                                    IS.ItemValue = dataValue;
-                                                    IS.ModifiedDate = DateTime.Now;
-                                                    _context.ISs.Update(IS);
-                                                    _context.SaveChanges();
                                                 }
-                                                else
-                                                {
-                                                    IS = new IS();
-                                                    IS.ItemValue = dataValue;
-                                                    IS.LineItemId = currentLineItemID;
-                                                    IS.StatementId = currentISStatementID;
-                                                    IS.IsActive = true;
-                                                    IS.CreatedDate = DateTime.Now;
-                                                    _context.ISs.Add(IS);
-                                                    _context.SaveChanges();
-                                                }
-                                            }
-                                            else
-                                            {
-                                                var IS = _context.ISs.Where(m => m.StatementId == currentISStatementID && m.LineItemId == currentLineItemID && m.IsActive == true).FirstOrDefault();
-                                                if (IS != null)
-                                                {
-                                                    IS.ItemValue = null;
-                                                    IS.ModifiedDate = DateTime.Now;
-                                                    _context.ISs.Update(IS);
-                                                    _context.SaveChanges();
-                                                }
-                                                else
-                                                {
-                                                    IS = new IS();
-                                                    IS.ItemValue = null;
-                                                    IS.LineItemId = currentLineItemID;
-                                                    IS.StatementId = currentISStatementID;
-                                                    IS.IsActive = true;
-                                                    IS.CreatedDate = DateTime.Now;
-                                                    _context.ISs.Add(IS);
-                                                    _context.SaveChanges();
-                                                }
-                                            }
+                                            }                                           
+                                        }
+                                        if (i == totalRows - 1)
+                                        {
+                                            JSONString.Append("}");
+                                        }
+                                        else
+                                        {
+                                            JSONString.Append("},");
                                         }
                                     }
                                 }
+                                JSONString.Append("]");
+                                var IS = new ISs();
+                                IS.CompanyId  = company.CompanyId;
+                                IS.CategoryId = category.CategoryId;
+                                IS.Payload = JSONString.ToString();
+                                IS.IsActive = true;
+                                IS.CreatedDate = DateTime.Now;
+                                _context.ISs.Add(IS);
+                                _context.SaveChanges();
                             }
 
                             //BS Insertion/Updation
                             if (category != null && category.CategoryName.Equals("BS"))
-                            {
+                            {                            
+                                var JSONString = new StringBuilder();
+                                JSONString.Append("[");
                                 for (int i = 4; i <= totalRows; i++)
                                 {
                                     if (workSheet.Cells[i, 1].Value != null)
@@ -325,130 +188,87 @@ namespace FinResearch.Controllers
                                         {
                                             continue;
                                         }
+                                        if (workSheet.Cells[i, 2].Value != null)
+                                        {
+                                            JSONString.Append("\"Config\":" + "\"" + workSheet.Cells[i, 2].Value + "\",");
+                                        }
                                         else if (LineItemText.EndsWith(':'))
                                         {
-                                            var parentLineItem = _context.LineItems.FirstOrDefault(m => m.CategoryId == category.CategoryId && m.LineItemText == LineItemText && m.ParentLineItemId == null && m.IsActive == true);
-                                            if (parentLineItem != null)
-                                            {
-                                                currentParentLineItemID = parentLineItem.LineItemId;
-                                            }
+                                            JSONString.Append("{");
+                                            JSONString.Append("\"LineItem\":" + "\"" + LineItemText + "\"");
+                                            JSONString.Append("}");
                                             continue;
                                         }
-                                        var lineItem = _context.LineItems.FirstOrDefault(m => m.CategoryId == category.CategoryId && m.LineItemText == LineItemText && m.ParentLineItemId == currentParentLineItemID && m.IsActive == true);
-                                        if (lineItem != null)
-                                        {
-                                            currentLineItemID = lineItem.LineItemId;
-                                            currentParentLineItemID = lineItem.ParentLineItemId;
-                                        }
+
+                                        JSONString.Append("{");
+                                        JSONString.Append("\"LineItem\":" + "\"" + LineItemText + "\",");
 
                                         int totalCols = workSheet.Dimension.Columns;
-                                        for (int j = 3; j <= totalCols; j++)
+                                        for (int j = 2; j <= totalCols; j++)
                                         {
-                                            string yearQuarterText = string.Empty;
-                                            string dateText = string.Empty;
-                                            DateTime dateFormatted = DateTime.Now;
-                                            if (workSheet.Cells[1, j].Value != null && workSheet.Cells[2, j].Text != null)
-                                            {
-                                                yearQuarterText = workSheet.Cells[1, j].Value.ToString();//Years or Quarters fetch
-                                                                                                         //Quarterly texts
-                                                if (!string.IsNullOrEmpty(yearQuarterText) && yearQuarterText.Length >= 4)
+                                            if (j < totalCols - 1)
+                                            {                                              
+                                                if (workSheet.Cells[1, j].Value != null && workSheet.Cells[2, j].Text != null)
                                                 {
-                                                    if (yearQuarterText.Contains("Q"))
+                                                    //JSONString.Append("\"YearQuarter\":" + "\"" + workSheet.Cells[1, j].Value + "\",");
+                                                    //JSONString.Append("\"Month\":" + "\"" + workSheet.Cells[2, j].Value + "\",");
+                                                    if (workSheet.Cells[i, j].Value != null)
                                                     {
-                                                        yearQuarterText = yearQuarterText.Substring(2, 2);
-                                                        yearQuarterText = "20" + yearQuarterText;
+                                                        var dataValue = workSheet.Cells[i, j].Value.ToString();//data values fetch
+                                                        JSONString.Append("\"" + workSheet.Cells[1, j].Value + " " + workSheet.Cells[2, j].Text + "\":" + "\"" + dataValue + "\",");
                                                     }
-                                                    //Else Yearly texts
-                                                    dateText = workSheet.Cells[2, j].Text.ToString();//Dates fetch
-                                                    dateText = dateText + "-" + yearQuarterText.Substring(0, 4);
-                                                    dateFormatted = DateTime.ParseExact(dateText, "dd-MMM-yyyy", CultureInfo.InvariantCulture);
-                                                    yearQuarterText = workSheet.Cells[1, j].Value.ToString();//Years or Quarters text fetch
-                                                }
-                                                else
-                                                {
-                                                    continue;
+                                                    else
+                                                    {
+                                                        //Blank 0 data value will be added
+                                                        JSONString.Append("\"" + workSheet.Cells[1, j].Value + " " + workSheet.Cells[2, j].Text + "\":" + "\"0\"");
+                                                    }
                                                 }
                                             }
-                                            else
+                                            else if (j == totalCols - 1)
                                             {
-                                                continue;
-                                            }
-
-                                            long currentBSStatementID = 0;
-                                            var finStatement = _context.FinanceStatements.FirstOrDefault(m => m.CompanyId == company.CompanyId && m.TransactionDate.Date == dateFormatted.Date && m.Quarter.ToLower().Trim().Equals(yearQuarterText.ToLower().Trim()) && m.IsActive == true);
-                                            if (finStatement == null)//New Year / Quarter Date to be added
-                                            {
-                                                int maxOrderNumber = _context.FinanceStatements.Select(p => p.OrderNo.Value).DefaultIfEmpty(0).Max() + 1;
-
-                                                finStatement = new FinanceStatement();
-                                                finStatement.CompanyId = company.CompanyId;
-                                                finStatement.TransactionDate = dateFormatted;
-                                                finStatement.Quarter = yearQuarterText;
-                                                finStatement.OrderNo = maxOrderNumber;
-                                                finStatement.IsHistorical = DateTime.Now.Date.CompareTo(dateFormatted.Date) > 0;
-                                                finStatement.CreatedDate = DateTime.Now;
-                                                _context.FinanceStatements.Add(finStatement);
-                                                _context.SaveChanges();
-                                                currentBSStatementID = finStatement.StatementId;
-                                            }
-                                            else
-                                            {
-                                                currentBSStatementID = finStatement.StatementId;
-                                            }
-                                            if (workSheet.Cells[i, j].Value != null)
-                                            {
-                                                var dataValue = workSheet.Cells[i, j].Value.ToString();//data values fetch
-
-                                                var BS = _context.BalanceSheets.FirstOrDefault(m => m.StatementId == currentBSStatementID && m.LineItemId == currentLineItemID && m.IsActive == true);
-                                                if (BS != null)
+                                                if (workSheet.Cells[1, j].Value != null && workSheet.Cells[2, j].Text != null)
                                                 {
-                                                    BS.ItemValue = dataValue;
-                                                    BS.ModifiedDate = DateTime.Now;
-                                                    _context.BalanceSheets.Update(BS);
-                                                    _context.SaveChanges();
-                                                }
-                                                else
-                                                {
-                                                    BS = new BalanceSheet();
-                                                    BS.ItemValue = dataValue;
-                                                    BS.LineItemId = currentLineItemID;
-                                                    BS.StatementId = currentBSStatementID;
-                                                    BS.IsActive = true;
-                                                    BS.CreatedDate = DateTime.Now;
-                                                    _context.BalanceSheets.Add(BS);
-                                                    _context.SaveChanges();
+                                                    //JSONString.Append("\"YearQuarter\":" + "\"" + workSheet.Cells[1, j].Value + "\"");
+                                                    //JSONString.Append("\"Month\":" + "\"" + workSheet.Cells[2, j].Value + "\"");
+                                                    if (workSheet.Cells[i, j].Value != null)
+                                                    {
+                                                        var dataValue = workSheet.Cells[i, j].Value.ToString();//data values fetch
+                                                        JSONString.Append("\"" + workSheet.Cells[1, j].Value + " " + workSheet.Cells[2, j].Text + "\":" + "\"" + dataValue + "\"");
+                                                    }
+                                                    else
+                                                    {
+                                                        //Blank 0 data value will be added
+                                                        JSONString.Append("\"" + workSheet.Cells[1, j].Value + " " + workSheet.Cells[2, j].Text + "\":" + "\"0\"");
+                                                    }
                                                 }
                                             }
-                                            else
-                                            {
-                                                var BS = _context.BalanceSheets.FirstOrDefault(m => m.StatementId == currentBSStatementID && m.LineItemId == currentLineItemID && m.IsActive == true);
-                                                if (BS != null)
-                                                {
-                                                    BS.ItemValue = null;
-                                                    BS.ModifiedDate = DateTime.Now;
-                                                    _context.BalanceSheets.Update(BS);
-                                                    _context.SaveChanges();
-                                                }
-                                                else
-                                                {
-                                                    BS = new BalanceSheet();
-                                                    BS.ItemValue = null;
-                                                    BS.LineItemId = currentLineItemID;
-                                                    BS.StatementId = currentBSStatementID;
-                                                    BS.IsActive = true;
-                                                    BS.CreatedDate = DateTime.Now;
-                                                    _context.BalanceSheets.Add(BS);
-                                                    _context.SaveChanges();
-                                                }
-                                            }
+                                        }
+                                        if (i == totalRows - 1)
+                                        {
+                                            JSONString.Append("}");
+                                        }
+                                        else
+                                        {
+                                            JSONString.Append("},");
                                         }
                                     }
                                 }
+                                JSONString.Append("]");
+                                var BS = new BalanceSheets();
+                                BS.CompanyId = company.CompanyId;
+                                BS.CategoryId = category.CategoryId;
+                                BS.Payload = JSONString.ToString();
+                                BS.IsActive = true;
+                                BS.CreatedDate = DateTime.Now;
+                                _context.BalanceSheets.Add(BS);
+                                _context.SaveChanges();
                             }
 
                             //CF Insertion/Updation
                             if (category != null && category.CategoryName.Equals("CF"))
                             {
+                                var JSONString = new StringBuilder();
+                                JSONString.Append("[");
                                 for (int i = 4; i <= totalRows; i++)
                                 {
                                     if (workSheet.Cells[i, 1].Value != null)
@@ -458,110 +278,88 @@ namespace FinResearch.Controllers
                                         {
                                             continue;
                                         }
+                                        if (workSheet.Cells[i, 2].Value != null)
+                                        {
+                                            JSONString.Append("\"Config\":" + "\"" + workSheet.Cells[i, 2].Value + "\",");
+                                        }
                                         else if (LineItemText.EndsWith(':'))
                                         {
-                                            var parentLineItem = _context.LineItems.FirstOrDefault(m => m.CategoryId == category.CategoryId && m.LineItemText == LineItemText && m.ParentLineItemId == null && m.IsActive == true);
-                                            if (parentLineItem != null)
-                                            {
-                                                currentParentLineItemID = parentLineItem.LineItemId;
-                                            }
+                                            JSONString.Append("{");
+                                            JSONString.Append("\"LineItem\":" + "\"" + LineItemText + "\"");
+                                            JSONString.Append("}");
                                             continue;
                                         }
-                                        var lineItem = _context.LineItems.FirstOrDefault(m => m.CategoryId == category.CategoryId && m.LineItemText == LineItemText && m.ParentLineItemId == currentParentLineItemID && m.IsActive == true);
-                                        if (lineItem != null)
-                                        {
-                                            currentLineItemID = lineItem.LineItemId;
-                                            currentParentLineItemID = lineItem.ParentLineItemId;
-                                        }
 
+                                        JSONString.Append("{");
+                                        JSONString.Append("\"LineItem\":" + "\"" + LineItemText + "\",");
 
                                         int totalCols = workSheet.Dimension.Columns;
-                                        for (int j = 3; j <= totalCols; j++)
+                                        for (int j = 2; j <= totalCols; j++)
                                         {
-                                            string yearQuarterText = string.Empty;
-                                            string dateText = string.Empty;
-                                            DateTime dateFormatted = DateTime.Now;
-                                            if (workSheet.Cells[1, j].Value != null && workSheet.Cells[2, j].Text != null)
+                                            if (j < totalCols - 1)
                                             {
-                                                yearQuarterText = workSheet.Cells[1, j].Value.ToString();//Years or Quarters fetch
-                                                if (!string.IsNullOrEmpty(yearQuarterText) && yearQuarterText.Length >= 4)
+                                                if (workSheet.Cells[1, j].Value != null && workSheet.Cells[2, j].Text != null)
                                                 {
-                                                    //Quarterly texts
-                                                    if (yearQuarterText.Contains("Q"))
+                                                    //JSONString.Append("\"YearQuarter\":" + "\"" + workSheet.Cells[1, j].Value + "\",");
+                                                    //JSONString.Append("\"Month\":" + "\"" + workSheet.Cells[2, j].Value + "\",");
+                                                    if (workSheet.Cells[i, j].Value != null)
                                                     {
-                                                        yearQuarterText = yearQuarterText.Substring(2, 2);
-                                                        yearQuarterText = "20" + yearQuarterText;
+                                                        var dataValue = workSheet.Cells[i, j].Value.ToString();//data values fetch
+                                                        JSONString.Append("\"" + workSheet.Cells[1, j].Value + " " + workSheet.Cells[2, j].Text + "\":" + "\"" + dataValue + "\",");
                                                     }
-                                                    //Else Yearly texts
-                                                    dateText = workSheet.Cells[2, j].Text.ToString();//Dates fetch
-                                                    dateText = dateText + "-" + yearQuarterText.Substring(0, 4);
-                                                    dateFormatted = DateTime.ParseExact(dateText, "dd-MMM-yyyy", CultureInfo.InvariantCulture);
-                                                    yearQuarterText = workSheet.Cells[1, j].Value.ToString();//Years or Quarters text fetch
+                                                    else
+                                                    {
+                                                        //Blank 0 data value will be added
+                                                        JSONString.Append("\"" + workSheet.Cells[1, j].Value + " " + workSheet.Cells[2, j].Text + "\":" + "\"0\"");
+                                                    }
                                                 }
-                                                else
+                                            }
+                                            else if (j == totalCols - 1)
+                                            {
+                                                if (workSheet.Cells[1, j].Value != null && workSheet.Cells[2, j].Text != null)
                                                 {
-                                                    continue;
+                                                    //JSONString.Append("\"YearQuarter\":" + "\"" + workSheet.Cells[1, j].Value + "\"");
+                                                    //JSONString.Append("\"Month\":" + "\"" + workSheet.Cells[2, j].Value + "\"");
+                                                    if (workSheet.Cells[i, j].Value != null)
+                                                    {
+                                                        var dataValue = workSheet.Cells[i, j].Value.ToString();//data values fetch
+                                                        JSONString.Append("\"" + workSheet.Cells[1, j].Value + " " + workSheet.Cells[2, j].Text + "\":" + "\"" + dataValue + "\"");
+                                                    }
+                                                    else
+                                                    {
+                                                        //Blank 0 data value will be added
+                                                        JSONString.Append("\"" + workSheet.Cells[1, j].Value + " " + workSheet.Cells[2, j].Text + "\":" + "\"0\"");
+                                                    }
                                                 }
                                             }
-                                            else
-                                            {
-                                                continue;
-                                            }
-
-                                            long currentCFStatementID = 0;
-                                            var finStatement = _context.FinanceStatements.FirstOrDefault(m => m.CompanyId == company.CompanyId && m.TransactionDate.Date == dateFormatted.Date && m.Quarter.ToLower().Trim().Equals(yearQuarterText.ToLower().Trim()) && m.IsActive == true);
-                                            if (finStatement == null)//New Year / Quarter Date to be added
-                                            {
-                                                int maxOrderNumber = _context.FinanceStatements.Select(p => p.OrderNo.Value).DefaultIfEmpty(0).Max() + 1;
-
-                                                finStatement = new FinanceStatement();
-                                                finStatement.CompanyId = company.CompanyId;
-                                                finStatement.TransactionDate = dateFormatted;
-                                                finStatement.Quarter = yearQuarterText;
-                                                finStatement.OrderNo = maxOrderNumber;
-                                                finStatement.IsHistorical = DateTime.Now.Date.CompareTo(dateFormatted.Date) > 0;
-                                                finStatement.CreatedDate = DateTime.Now;
-                                                finStatement.IsActive = true;
-                                                _context.FinanceStatements.Add(finStatement);
-                                                _context.SaveChanges();
-                                                currentCFStatementID = finStatement.StatementId;
-                                            }
-                                            else
-                                            {
-                                                currentCFStatementID = finStatement.StatementId;
-                                            }
-                                            if (workSheet.Cells[i, j].Value != null)
-                                            {
-                                                var dataValue = workSheet.Cells[i, j].Value.ToString();//data values fetch
-
-                                                var CF = _context.CashFlows.FirstOrDefault(m => m.StatementId == currentCFStatementID && m.LineItemId == currentLineItemID && m.IsActive == true);
-                                                if (CF != null)
-                                                {
-                                                    CF.ItemValue = dataValue;
-                                                    CF.ModifiedDate = DateTime.Now;
-                                                    _context.CashFlows.Update(CF);
-                                                    _context.SaveChanges();
-                                                }
-                                                else
-                                                {
-                                                    CF = new CashFlow();
-                                                    CF.ItemValue = dataValue;
-                                                    CF.LineItemId = currentLineItemID;
-                                                    CF.StatementId = currentCFStatementID;
-                                                    CF.IsActive = true;
-                                                    CF.CreatedDate = DateTime.Now;
-                                                    _context.CashFlows.Add(CF);
-                                                    _context.SaveChanges();
-                                                }
-                                            }
+                                        }
+                                        if (i == totalRows - 1)
+                                        {
+                                            JSONString.Append("}");
+                                        }
+                                        else
+                                        {
+                                            JSONString.Append("},");
                                         }
                                     }
                                 }
+                                JSONString.Append("]");
+
+                                var CF = new CashFlows();
+                                CF.CompanyId = company.CompanyId;
+                                CF.CategoryId = category.CategoryId;
+                                CF.Payload = JSONString.ToString();
+                                CF.IsActive = true;
+                                CF.CreatedDate = DateTime.Now;
+                                _context.CashFlows.Add(CF);
+                                _context.SaveChanges();
                             }
 
                             //ISNG Insertion/Updation
                             if (category != null && category.CategoryName.Equals("IS_NG"))
                             {
+                                var JSONString = new StringBuilder();
+                                JSONString.Append("[");
                                 for (int i = 4; i <= totalRows; i++)
                                 {
                                     if (workSheet.Cells[i, 1].Value != null)
@@ -571,132 +369,84 @@ namespace FinResearch.Controllers
                                         {
                                             continue;
                                         }
+                                        if (workSheet.Cells[i, 2].Value != null)
+                                        {
+                                            JSONString.Append("\"Config\":" + "\"" + workSheet.Cells[i, 2].Value + "\",");
+                                        }
                                         else if (LineItemText.EndsWith(':'))
                                         {
-                                            var parentLineItem = _context.LineItems.FirstOrDefault(m => m.CategoryId == category.CategoryId && m.LineItemText == LineItemText && m.ParentLineItemId == null && m.IsActive == true);
-                                            if (parentLineItem != null)
-                                            {
-                                                currentParentLineItemID = parentLineItem.LineItemId;
-                                            }
+                                            JSONString.Append("{");
+                                            JSONString.Append("\"LineItem\":" + "\"" + LineItemText + "\"");
+                                            JSONString.Append("}");
                                             continue;
                                         }
-                                        var lineItem = _context.LineItems.FirstOrDefault(m => m.CategoryId == category.CategoryId && m.LineItemText == LineItemText && m.ParentLineItemId == currentParentLineItemID && m.IsActive == true);
-                                        if (lineItem != null)
-                                        {
-                                            currentLineItemID = lineItem.LineItemId;
-                                            currentParentLineItemID = lineItem.ParentLineItemId;
-                                        }
-
 
                                         int totalCols = workSheet.Dimension.Columns;
-                                        for (int j = 3; j <= totalCols; j++)
+                                        for (int j = 2; j <= totalCols; j++)
                                         {
-                                            string yearQuarterText = string.Empty;
-                                            string dateText = string.Empty;
-                                            DateTime dateFormatted = DateTime.Now;
-                                            if (workSheet.Cells[1, j].Value != null && workSheet.Cells[2, j].Text != null)
+                                            if (j < totalCols - 1)
                                             {
-                                                yearQuarterText = workSheet.Cells[1, j].Value.ToString();//Years or Quarters fetch
-                                                if (!string.IsNullOrEmpty(yearQuarterText) && yearQuarterText.Length >= 4)
+                                                if (workSheet.Cells[1, j].Value != null && workSheet.Cells[2, j].Text != null)
                                                 {
-                                                    //Quarterly texts
-                                                    if (yearQuarterText.Contains("Q"))
+                                                    //JSONString.Append("\"YearQuarter\":" + "\"" + workSheet.Cells[1, j].Value + "\",");
+                                                    //JSONString.Append("\"Month\":" + "\"" + workSheet.Cells[2, j].Value + "\",");
+                                                    if (workSheet.Cells[i, j].Value != null)
                                                     {
-                                                        yearQuarterText = yearQuarterText.Substring(2, 2);
-                                                        yearQuarterText = "20" + yearQuarterText;
+                                                        var dataValue = workSheet.Cells[i, j].Value.ToString();//data values fetch
+                                                        JSONString.Append("\"" + workSheet.Cells[1, j].Value + " " + workSheet.Cells[2, j].Text + "\":" + "\"" + dataValue + "\",");
                                                     }
-                                                    //Else Yearly texts
-                                                    dateText = workSheet.Cells[2, j].Text.ToString();//Dates fetch
-                                                    dateText = dateText + "-" + yearQuarterText.Substring(0, 4);
-                                                    dateFormatted = DateTime.ParseExact(dateText, "dd-MMM-yyyy", CultureInfo.InvariantCulture);
-                                                    yearQuarterText = workSheet.Cells[1, j].Value.ToString();//Years or Quarters text fetch
+                                                    else
+                                                    {
+                                                        //Blank 0 data value will be added
+                                                        JSONString.Append("\"" + workSheet.Cells[1, j].Value + " " + workSheet.Cells[2, j].Text + "\":" + "\"0\"");
+                                                    }
                                                 }
-                                                else
+                                            }
+                                            else if (j == totalCols - 1)
+                                            {                                             
+                                                if (workSheet.Cells[1, j].Value != null && workSheet.Cells[2, j].Text != null)
                                                 {
-                                                    continue;
+                                                    //JSONString.Append("\"YearQuarter\":" + "\"" + workSheet.Cells[1, j].Value + "\"");
+                                                    //JSONString.Append("\"Month\":" + "\"" + workSheet.Cells[2, j].Value + "\"");
+                                                    if (workSheet.Cells[i, j].Value != null)
+                                                    {
+                                                        var dataValue = workSheet.Cells[i, j].Value.ToString();//data values fetch
+                                                        JSONString.Append("\"" + workSheet.Cells[1, j].Value + " " + workSheet.Cells[2, j].Text + "\":" + "\"" + dataValue + "\"");
+                                                    }
+                                                    else
+                                                    {
+                                                        //Blank 0 data value will be added
+                                                        JSONString.Append("\"" + workSheet.Cells[1, j].Value + " " + workSheet.Cells[2, j].Text + "\":" + "\"0\"");
+                                                    }
                                                 }
                                             }
-                                            else
-                                            {
-                                                continue;
-                                            }
-
-                                            long currentISNGStatementID = 0;
-                                            var finStatement = _context.FinanceStatements.FirstOrDefault(m => m.CompanyId == company.CompanyId && m.TransactionDate.Date == dateFormatted.Date && m.Quarter.ToLower().Trim().Equals(yearQuarterText.ToLower().Trim()) && m.IsActive == true);
-                                            if (finStatement == null)//New Year / Quarter Date to be added
-                                            {
-                                                int maxOrderNumber = _context.FinanceStatements.Select(p => p.OrderNo.Value).DefaultIfEmpty(0).Max() + 1;
-
-                                                finStatement = new FinanceStatement();
-                                                finStatement.CompanyId = company.CompanyId;
-                                                finStatement.TransactionDate = dateFormatted;
-                                                finStatement.Quarter = yearQuarterText;
-                                                finStatement.OrderNo = maxOrderNumber;
-                                                finStatement.IsHistorical = DateTime.Now.Date.CompareTo(dateFormatted.Date) > 0;
-                                                finStatement.CreatedDate = DateTime.Now;
-                                                finStatement.IsActive = true;
-                                                _context.FinanceStatements.Add(finStatement);
-                                                _context.SaveChanges();
-                                                currentISNGStatementID = finStatement.StatementId;
-                                            }
-                                            else
-                                            {
-                                                currentISNGStatementID = finStatement.StatementId;
-                                            }
-                                            if (workSheet.Cells[i, j].Value != null)
-                                            {
-                                                var dataValue = workSheet.Cells[i, j].Value.ToString();//data values fetch
-
-                                                var ISNG = _context.ISNonGAAPs.FirstOrDefault(m => m.StatementId == currentISNGStatementID && m.LineItemId == currentLineItemID && m.IsActive == true);
-                                                if (ISNG != null)
-                                                {
-                                                    ISNG.ItemValue = dataValue;
-                                                    ISNG.ModifiedDate = DateTime.Now;
-                                                    _context.ISNonGAAPs.Update(ISNG);
-                                                    _context.SaveChanges();
-                                                }
-                                                else
-                                                {
-                                                    ISNG = new ISNonGAAP();
-                                                    ISNG.ItemValue = dataValue;
-                                                    ISNG.LineItemId = currentLineItemID;
-                                                    ISNG.StatementId = currentISNGStatementID;
-                                                    ISNG.IsActive = true;
-                                                    ISNG.CreatedDate = DateTime.Now;
-                                                    _context.ISNonGAAPs.Add(ISNG);
-                                                    _context.SaveChanges();
-                                                }
-                                            }
-                                            else
-                                            {
-                                                var ISNG = _context.ISNonGAAPs.FirstOrDefault(m => m.StatementId == currentISNGStatementID && m.LineItemId == currentLineItemID && m.IsActive == true);
-                                                if (ISNG != null)
-                                                {
-                                                    ISNG.ItemValue = null;
-                                                    ISNG.ModifiedDate = DateTime.Now;
-                                                    _context.ISNonGAAPs.Update(ISNG);
-                                                    _context.SaveChanges();
-                                                }
-                                                else
-                                                {
-                                                    ISNG = new ISNonGAAP();
-                                                    ISNG.ItemValue = null;
-                                                    ISNG.LineItemId = currentLineItemID;
-                                                    ISNG.StatementId = currentISNGStatementID;
-                                                    ISNG.IsActive = true;
-                                                    ISNG.CreatedDate = DateTime.Now;
-                                                    _context.ISNonGAAPs.Add(ISNG);
-                                                    _context.SaveChanges();
-                                                }
-                                            }
+                                        }
+                                        if (i == totalRows - 1)
+                                        {
+                                            JSONString.Append("}");
+                                        }
+                                        else
+                                        {
+                                            JSONString.Append("},");
                                         }
                                     }
                                 }
+                                JSONString.Append("]");
+                                var ISNG = new ISNonGAAPs();
+                                ISNG.CompanyId = company.CompanyId;
+                                ISNG.CategoryId = category.CategoryId;
+                                ISNG.Payload = JSONString.ToString();
+                                ISNG.IsActive = true;
+                                ISNG.CreatedDate = DateTime.Now;
+                                _context.ISNonGAAPs.Add(ISNG);
+                                _context.SaveChanges();
                             }
 
                             //RD Insertion/Updation
                             if (category != null && category.CategoryName.Equals("RD"))
                             {
+                                var JSONString = new StringBuilder();
+                                JSONString.Append("[");
                                 for (int i = 4; i <= totalRows; i++)
                                 {
                                     if (workSheet.Cells[i, 1].Value != null)
@@ -706,133 +456,80 @@ namespace FinResearch.Controllers
                                         {
                                             continue;
                                         }
+                                        if (workSheet.Cells[i, 2].Value != null)
+                                        {
+                                            JSONString.Append("\"Config\":" + "\"" + workSheet.Cells[i, 2].Value + "\",");
+                                        }
                                         else if (LineItemText.EndsWith(':'))
                                         {
-                                            var parentLineItem = _context.LineItems.FirstOrDefault(m => m.CategoryId == category.CategoryId && m.LineItemText == LineItemText && m.ParentLineItemId == null && m.IsActive == true);
-                                            if (parentLineItem != null)
-                                            {
-                                                currentParentLineItemID = parentLineItem.LineItemId;
-                                            }
+                                            JSONString.Append("{");
+                                            JSONString.Append("\"LineItem\":" + "\"" + LineItemText + "\"");
+                                            JSONString.Append("}");
                                             continue;
                                         }
-                                        var lineItem = _context.LineItems.FirstOrDefault(m => m.CategoryId == category.CategoryId && m.LineItemText == LineItemText && m.ParentLineItemId == currentParentLineItemID && m.IsActive == true);
-                                        if (lineItem != null)
-                                        {
-                                            currentLineItemID = lineItem.LineItemId;
-                                            currentParentLineItemID = lineItem.ParentLineItemId;
-                                        }
+
+                                        JSONString.Append("{");
+                                        JSONString.Append("\"LineItem\":" + "\"" + LineItemText + "\",");
 
                                         int totalCols = workSheet.Dimension.Columns;
-                                        for (int j = 3; j <= totalCols; j++)
+                                        for (int j = 2; j <= totalCols; j++)
                                         {
-                                            string yearQuarterText = string.Empty;
-                                            string dateText = string.Empty;
-                                            DateTime dateFormatted = DateTime.Now;
-                                            if (workSheet.Cells[1, j].Value != null && workSheet.Cells[2, j].Text != null)
+                                            if (j < totalCols - 1)
                                             {
-                                                yearQuarterText = workSheet.Cells[1, j].Value.ToString();//Years or Quarters fetch
-                                                if (!string.IsNullOrEmpty(yearQuarterText) && yearQuarterText.Length >= 4)
+                                                if (workSheet.Cells[1, j].Value != null && workSheet.Cells[2, j].Text != null)
                                                 {
-                                                    if (!string.IsNullOrEmpty(yearQuarterText) && yearQuarterText.Length >= 4)
+                                                    //JSONString.Append("\"YearQuarter\":" + "\"" + workSheet.Cells[1, j].Value + "\",");
+                                                    //JSONString.Append("\"Month\":" + "\"" + workSheet.Cells[2, j].Value + "\",");
+                                                    if (workSheet.Cells[i, j].Value != null)
                                                     {
-                                                        //Quarterly texts
-                                                        if (yearQuarterText.Contains("Q"))
-                                                        {
-                                                            yearQuarterText = yearQuarterText.Substring(2, 2);
-                                                            yearQuarterText = "20" + yearQuarterText;
-                                                        }
-                                                        //Else Yearly texts
-                                                        dateText = workSheet.Cells[2, j].Text.ToString();//Dates fetch
-                                                        dateText = dateText + "-" + yearQuarterText.Substring(0, 4);
-                                                        dateFormatted = DateTime.ParseExact(dateText, "dd-MMM-yyyy", CultureInfo.InvariantCulture);
-                                                        yearQuarterText = workSheet.Cells[1, j].Value.ToString();//Years or Quarters text fetch
+                                                        var dataValue = workSheet.Cells[i, j].Value.ToString();//data values fetch
+                                                        JSONString.Append("\"" + workSheet.Cells[1, j].Value + " " + workSheet.Cells[2, j].Text + "\":" + "\"" + dataValue + "\",");
                                                     }
                                                     else
                                                     {
-                                                        continue;
+                                                        //Blank 0 data value will be added
+                                                        JSONString.Append("\"" + workSheet.Cells[1, j].Value + " " + workSheet.Cells[2, j].Text + "\":" + "\"0\"");
                                                     }
                                                 }
-                                                else
-                                                {
-                                                    continue;
-                                                }
                                             }
-                                            else
+                                            else if (j == totalCols - 1)
                                             {
-                                                continue;
-                                            }
-
-                                            long currentRDStatementID = 0;
-                                            var finStatement = _context.FinanceStatements.FirstOrDefault(m => m.CompanyId == company.CompanyId && m.TransactionDate.Date == dateFormatted.Date && m.Quarter.ToLower().Trim().Equals(yearQuarterText.ToLower().Trim()) && m.IsActive == true);
-                                            if (finStatement == null)//New Year / Quarter Date to be added
-                                            {
-                                                int maxOrderNumber = _context.FinanceStatements.Select(p => p.OrderNo.Value).DefaultIfEmpty(0).Max() + 1;
-
-                                                finStatement = new FinanceStatement();
-                                                finStatement.CompanyId = company.CompanyId;
-                                                finStatement.TransactionDate = dateFormatted;
-                                                finStatement.Quarter = yearQuarterText;
-                                                finStatement.OrderNo = maxOrderNumber;
-                                                finStatement.IsHistorical = DateTime.Now.Date.CompareTo(dateFormatted.Date) > 0;
-                                                finStatement.CreatedDate = DateTime.Now;
-                                                _context.FinanceStatements.Add(finStatement);
-                                                _context.SaveChanges();
-                                                currentRDStatementID = finStatement.StatementId;
-                                            }
-                                            else
-                                            {
-                                                currentRDStatementID = finStatement.StatementId;
-                                            }
-                                            if (workSheet.Cells[i, j].Value != null)
-                                            {
-                                                var dataValue = workSheet.Cells[i, j].Value.ToString();//data values fetch
-
-                                                var RD = _context.RDs.FirstOrDefault(m => m.StatementId == currentRDStatementID && m.LineItemId == currentLineItemID && m.IsActive == true);
-                                                if (RD != null)
+                                                if (workSheet.Cells[1, j].Value != null && workSheet.Cells[2, j].Text != null)
                                                 {
-                                                    RD.ItemValue = dataValue;
-                                                    RD.ModifiedDate = DateTime.Now;
-                                                    _context.RDs.Update(RD);
-                                                    _context.SaveChanges();
-                                                }
-                                                else
-                                                {
-                                                    RD = new RD();
-                                                    RD.ItemValue = dataValue;
-                                                    RD.LineItemId = currentLineItemID;
-                                                    RD.StatementId = currentRDStatementID;
-                                                    RD.IsActive = true;
-                                                    RD.CreatedDate = DateTime.Now;
-                                                    _context.RDs.Add(RD);
-                                                    _context.SaveChanges();
-                                                }
-                                            }
-                                            else
-                                            {
-                                                var RD = _context.RDs.FirstOrDefault(m => m.StatementId == currentRDStatementID && m.LineItemId == currentLineItemID && m.IsActive == true);
-                                                if (RD != null)
-                                                {
-                                                    RD.ItemValue = null;
-                                                    RD.ModifiedDate = DateTime.Now;
-                                                    _context.RDs.Update(RD);
-                                                    _context.SaveChanges();
-                                                }
-                                                else
-                                                {
-                                                    RD = new RD();
-                                                    RD.ItemValue = null;
-                                                    RD.LineItemId = currentLineItemID;
-                                                    RD.StatementId = currentRDStatementID;
-                                                    RD.IsActive = true;
-                                                    RD.CreatedDate = DateTime.Now;
-                                                    _context.RDs.Add(RD);
-                                                    _context.SaveChanges();
+                                                    //JSONString.Append("\"YearQuarter\":" + "\"" + workSheet.Cells[1, j].Value + "\"");
+                                                    //JSONString.Append("\"Month\":" + "\"" + workSheet.Cells[2, j].Value + "\"");
+                                                    if (workSheet.Cells[i, j].Value != null)
+                                                    {
+                                                        var dataValue = workSheet.Cells[i, j].Value.ToString();//data values fetch
+                                                        JSONString.Append("\"" + workSheet.Cells[1, j].Value + " " + workSheet.Cells[2, j].Text + "\":" + "\"" + dataValue + "\"");
+                                                    }
+                                                    else
+                                                    {
+                                                        //Blank 0 data value will be added
+                                                        JSONString.Append("\"" + workSheet.Cells[1, j].Value + " " + workSheet.Cells[2, j].Text + "\":" + "\"0\"");
+                                                    }
                                                 }
                                             }
                                         }
+                                        if (i == totalRows - 1)
+                                        {
+                                            JSONString.Append("}");
+                                        }
+                                        else
+                                        {
+                                            JSONString.Append("},");
+                                        }
                                     }
-
                                 }
+                                JSONString.Append("]");
+                                var RD = new RDs();
+                                RD.CompanyId = company.CompanyId;
+                                RD.CategoryId = category.CategoryId;
+                                RD.Payload = JSONString.ToString();
+                                RD.IsActive = true;
+                                RD.CreatedDate = DateTime.Now;
+                                _context.RDs.Add(RD);
+                                _context.SaveChanges();
                             }
 
                         }

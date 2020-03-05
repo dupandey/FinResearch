@@ -7,14 +7,14 @@ using System.Threading.Tasks;
 
 namespace FinResearch.Models
 {
-    [Table("RD")]
-    public class RD
+    [Table("RDs")]
+    public class RDs
     {
         [Key]
         public long RDId { get; set; }
-        public long StatementId { get; set; }
-        public long LineItemId { get; set; }
-        public string ItemValue { get; set; }
+        public int CompanyId { get; set; }
+        public int CategoryId { get; set; }
+        public string Payload { get; set; }
         public bool IsActive { get; set; }
         public DateTime? CreatedDate { get; set; }
         public DateTime? ModifiedDate { get; set; }

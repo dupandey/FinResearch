@@ -7,16 +7,14 @@ using System.Threading.Tasks;
 
 namespace FinResearch.Models
 {
-    [Table("CashFlow")]
-
-    public class CashFlow
+    [Table("CashFlows")]
+    public class CashFlows
     {
         [Key]
         public long CashFlowId { get; set; }
-        public long StatementId { get; set; }
-
-        public long LineItemId { get; set; }
-        public string ItemValue { get; set; }
+        public int CompanyId { get; set; }
+        public int CategoryId { get; set; }
+        public string Payload { get; set; }
         public bool IsActive { get; set; }
         public DateTime? CreatedDate { get; set; }
         public DateTime? ModifiedDate { get; set; }
