@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using FinResearch.Models;
 using System.Data.SqlClient;
 using System.Data;
+using Newtonsoft.Json.Linq;
 
 namespace FinResearch.Controllers
 {
@@ -27,14 +28,10 @@ namespace FinResearch.Controllers
 			return View(await _context.FinanceStatements.ToListAsync());
         }
 
-		public ActionResult GetStatements()
+		public string GetStatements()
 		{
-            var parameters = new[] {
-            new SqlParameter("@CompanyId", SqlDbType.Int) { Direction = ParameterDirection.Input, Value = 2 },
-            new SqlParameter("@CategoryId", SqlDbType.Int) { Direction = ParameterDirection.Input, Value = 1 }
-            };
-            var p = _context.FinQuery.FromSqlRaw("exec financedata 2, 1").ToList();
-            return Json(p.FirstOrDefault().Records);
+			var payload = _context.ISs.FirstOrDefault(x => x.CompanyId == 2)?.Payload;
+			return payload;
 		}
 
 		// GET: FinanceStatements/Details/5
