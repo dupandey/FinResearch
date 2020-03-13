@@ -304,7 +304,6 @@ namespace FinResearch.Controllers
 				JObject jObject = new JObject();
 				if (workSheet.Cells[i, 1].Value != null)
 				{
-
 					var LineItemText = workSheet.Cells[i, 1].Value.ToString();
 					if (LineItemText.ToLower().Trim().Equals("check"))
 					{
@@ -313,6 +312,30 @@ namespace FinResearch.Controllers
 					jObject.Add("Config", workSheet.Cells[i, 2].Value == null ? " " : workSheet.Cells[i, 2].Value.ToString());
 					jObject.Add("LineItem", LineItemText);
 
+					if(workSheet.Cells[i, 1].Style.Font.Bold)
+					{
+						jObject.Add("IsBold", 1);						
+					}
+					else
+					{
+						jObject.Add("IsBold", 0);
+					}
+					if (workSheet.Cells[i, 1].Style.Font.Italic)
+					{
+						jObject.Add("IsItalic", 1);
+					}
+					else
+					{
+						jObject.Add("IsItalic", 0);
+					}
+					if (workSheet.Cells[i, 1].Style.Font.UnderLine)
+					{
+						jObject.Add("IsUnderLined", 1);
+					}
+					else
+					{
+						jObject.Add("IsUnderLined", 0);
+					}
 
 					int totalCols = workSheet.Dimension.Columns;
 					for (int j = 2; j <= totalCols; j++)
@@ -321,12 +344,10 @@ namespace FinResearch.Controllers
 						{
 							if (workSheet.Cells[1, j].Value != null && workSheet.Cells[2, j].Text != null)
 							{
-								//JSONString.Append("\"YearQuarter\":" + "\"" + workSheet.Cells[1, j].Value + "\",");
-								//JSONString.Append("\"Month\":" + "\"" + workSheet.Cells[2, j].Value + "\",");
 								if (workSheet.Cells[i, j].Value != null)
 								{
 									var dataValue = workSheet.Cells[i, j].Value.ToString();//data values fetch
-																						   //JSONString.Append("\"" + workSheet.Cells[1, j].Value + " " + workSheet.Cells[2, j].Text + "\":" + "\"" + dataValue + "\",");
+									//JSONString.Append("\"" + workSheet.Cells[1, j].Value + " " + workSheet.Cells[2, j].Text + "\":" + "\"" + dataValue + "\",");
 									jObject.Add(workSheet.Cells[1, j].Value + "<br/>" + workSheet.Cells[2, j].Text, dataValue);
 								}
 								else
@@ -334,14 +355,14 @@ namespace FinResearch.Controllers
 									//Blank 0 data value will be added
 									jObject.Add(workSheet.Cells[1, j].Value + "<br/>" + workSheet.Cells[2, j].Text, 0);
 								}
+								//jObject.Add("Formula", workSheet.Cells[i, j].Formula.ToString());
+								//jObject.Add("FontColor", workSheet.Cells[i, j].Style.Font.Color.ToString());
 							}
 						}
 						else if (j == totalCols - 1)
 						{
 							if (workSheet.Cells[1, j].Value != null && workSheet.Cells[2, j].Text != null)
 							{
-								//JSONString.Append("\"YearQuarter\":" + "\"" + workSheet.Cells[1, j].Value + "\"");
-								//JSONString.Append("\"Month\":" + "\"" + workSheet.Cells[2, j].Value + "\"");
 								if (workSheet.Cells[i, j].Value != null)
 								{
 									var dataValue = workSheet.Cells[i, j].Value.ToString();//data values fetch
@@ -352,6 +373,8 @@ namespace FinResearch.Controllers
 									//Blank 0 data value will be added
 									jObject.Add(workSheet.Cells[1, j].Value + "<br/>" + workSheet.Cells[2, j].Text, 0);
 								}
+								//jObject.Add("Formula", workSheet.Cells[i, j].Formula.ToString());
+								//jObject.Add("FontColor", workSheet.Cells[i, j].Style.Font.Color.ToString());
 							}
 						}
 					}
