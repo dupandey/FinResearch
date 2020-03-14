@@ -22,7 +22,8 @@ namespace FinResearch.Models
         public DbSet<BalanceSheets> BalanceSheets { get; set; }
         public DbSet<CashFlows> CashFlows { get; set; }
         public DbSet<ISs> ISs { get; set; }
-        public DbSet<ISNonGAAPs> ISNonGAAPs { get; set; }
+		public DbSet<ThemeMasterIs> ThemeMasterIss { get; set; }
+		public DbSet<ISNonGAAPs> ISNonGAAPs { get; set; }
         public DbSet<RDs> RDs { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

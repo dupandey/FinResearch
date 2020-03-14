@@ -89,14 +89,24 @@ namespace FinResearch.Controllers
 							{
 								//var JSONString = new StringBuilder();
 								   JArray jArray = GetExcelArray(workSheet, totalRows);
-								   var IS = new ISs();
+								   JArray jthemeArray = GetExcelThemeArray(workSheet, totalRows);
+								    var IS = new ISs();
 									IS.CompanyId = company.CompanyId;
 									IS.CategoryId = category.CategoryId;
 									IS.Payload = jArray.ToString();
 									IS.IsActive = true;
 									IS.CreatedDate = DateTime.Now;
 									_context.ISs.Add(IS);
-									_context.SaveChanges();
+
+									var themeis = new ThemeMasterIs();
+									themeis.CompanyId = company.CompanyId;
+									themeis.CategoryId = category.CategoryId;
+									themeis.Payload = jthemeArray.ToString();
+									themeis.IsActive = true;
+									themeis.CreatedDate = DateTime.Now;
+									_context.ThemeMasterIss.Add(themeis);
+
+								_context.SaveChanges();
 								
 							}
 
@@ -198,7 +208,7 @@ namespace FinResearch.Controllers
 								var ISNG = new ISNonGAAPs();
 									ISNG.CompanyId = company.CompanyId;
 									ISNG.CategoryId = category.CategoryId;
-									ISNG.Payload = JSONString.ToString();
+									ISNG.Payload = jArray.ToString();
 									ISNG.IsActive = true;
 									ISNG.CreatedDate = DateTime.Now;
 									_context.ISNonGAAPs.Add(ISNG);
@@ -385,6 +395,98 @@ namespace FinResearch.Controllers
 			}
 
 			return jArray;
+		}
+		private static JArray GetExcelThemeArray(ExcelWorksheet workSheet, int totalRows)
+		{
+			try
+			{
+
+			
+			JArray jthemeArray = new JArray();
+			for (int i = 4; i <= totalRows; i++)
+			{
+				JObject jObject = new JObject();
+				if (workSheet.Cells[i, 1].Value != null)
+				{
+					var LineItemText = workSheet.Cells[i, 1].Value.ToString();
+					if (LineItemText.ToLower().Trim().Equals("check"))
+					{
+						continue;
+					}
+					if(workSheet.Cells[i, 2].Value != null && workSheet.Cells[i, 2].Style.Font.Bold)
+					jObject.Add("Config_bold", "bold");
+					if (workSheet.Cells[i, 2].Value != null && workSheet.Cells[i, 2].Style.Font.Italic)
+						jObject.Add("Config_italic", "italic");
+					if (workSheet.Cells[i, 2].Value != null && workSheet.Cells[i, 2].Style.Font.UnderLine)
+						jObject.Add("Config_underline", "underline");
+					   jObject.Add("LineItem", LineItemText);
+
+					int totalCols = workSheet.Dimension.Columns;
+					for (int j = 2; j <= totalCols; j++)
+					{
+						if (j < totalCols - 1)
+						{
+							if (workSheet.Cells[1, j].Value != null && workSheet.Cells[2, j].Text != null)
+							{
+								string dataValue = "";
+								if (workSheet.Cells[i, j].Style.Font.Bold)
+									dataValue = "bold";
+								if (workSheet.Cells[i, j].Style.Font.Italic)
+									dataValue = "italic";
+								if (workSheet.Cells[i, j].Style.Font.UnderLine)
+									dataValue = "underline";
+								
+
+								jObject.Add(workSheet.Cells[1, j].Value + "<br/>" + workSheet.Cells[2, j].Text, dataValue);
+							
+								jObject.Add(workSheet.Cells[1, j].Value + "<br/>" + workSheet.Cells[2, j].Text+"_formula", workSheet.Cells[i, j].Formula.ToString());
+								jObject.Add(workSheet.Cells[1, j].Value + "<br/>" + workSheet.Cells[2, j].Text + "_color", workSheet.Cells[i, j].Formula.ToString());
+
+							}
+							
+								//jObject.Add("Formula", workSheet.Cells[i, j].Formula.ToString());
+								//jObject.Add("FontColor", workSheet.Cells[i, j].Style.Font.Color.ToString());
+							
+						}
+						else if (j == totalCols - 1)
+						{
+							if (workSheet.Cells[1, j].Value != null && workSheet.Cells[2, j].Text != null)
+							{
+								if (workSheet.Cells[i, j].Value != null)
+								{
+									string dataValue = "";
+									if (workSheet.Cells[i, j].Style.Font.Bold)
+										dataValue = "bold";
+									if (workSheet.Cells[i, j].Style.Font.Italic)
+										dataValue = "italic";
+									if (workSheet.Cells[i, j].Style.Font.UnderLine)
+										dataValue = "underline";
+
+
+									jObject.Add(workSheet.Cells[1, j].Value + "<br/>" + workSheet.Cells[2, j].Text , dataValue);
+
+									jObject.Add(workSheet.Cells[1, j].Value + "<br/>" + workSheet.Cells[2, j].Text + "_formula", workSheet.Cells[i, j].Formula.ToString());
+									jObject.Add(workSheet.Cells[1, j].Value + "<br/>" + workSheet.Cells[2, j].Text + "_color", workSheet.Cells[i, j].Formula.ToString());
+								}
+								
+								//jObject.Add("Formula", workSheet.Cells[i, j].Formula.ToString());
+								//jObject.Add("FontColor", workSheet.Cells[i, j].Style.Font.Color.ToString());
+							}
+						}
+					}
+
+				}
+				if (jObject.HasValues)
+					jthemeArray.Add(jObject);
+			}
+
+			return jthemeArray;
+			}
+			catch (Exception ex)
+			{
+
+				throw ex;
+			}
 		}
 	}
 

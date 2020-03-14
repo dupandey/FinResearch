@@ -20,4 +20,17 @@ namespace FinResearch.Models
         public DateTime? ModifiedDate { get; set; }
      
     }
+	[Table("ThemeMasterIss")]
+	public class ThemeMasterIs
+	{
+		[Key]
+		public long Id { get; set; }
+		public int CompanyId { get; set; }
+		public int CategoryId { get; set; }
+		public string Payload { get; set; }
+		public bool IsActive { get; set; }
+		public DateTime? CreatedDate { get; set; }
+		public DateTime? ModifiedDate { get; set; }
+
+	}
 }
