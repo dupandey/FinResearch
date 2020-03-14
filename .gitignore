@@ -468,3 +468,9 @@ obj/project.assets.json
 obj/project.assets.json
 .vs/FinResearch/v16/.suo
 obj/FinResearch.csproj.nuget.g.props
+.vs/FinResearch/DesignTimeBuild/.dtbcache
+	.vs/FinResearch/v16/.suo
+	obj/FinResearch.csproj.nuget.cache
+	obj/FinResearch.csproj.nuget.dgspec.json
+	obj/FinResearch.csproj.nuget.g.props
+	obj/project.assets.json
