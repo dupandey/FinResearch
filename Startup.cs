@@ -10,6 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.EntityFrameworkCore;
 using FinResearch.Models;
+using Microsoft.AspNetCore.Identity;
 
 namespace FinResearch
 {
@@ -25,10 +26,11 @@ namespace FinResearch
 		// This method gets called by the runtime. Use this method to add services to the container.
 		public void ConfigureServices(IServiceCollection services)
 		{
-			services.AddControllersWithViews();
-
 		    services.AddDbContext<FinResearchContext>(options =>
 		            options.UseSqlServer(Configuration.GetConnectionString("FinResearchContext")));
+			services.AddIdentity<ApplicationUser, IdentityRole>().AddEntityFrameworkStores<FinResearchContext>().AddDefaultTokenProviders();
+			services.AddControllersWithViews();
+
 		}
 
 		// This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -46,10 +48,8 @@ namespace FinResearch
 			}
 			app.UseHttpsRedirection();
 			app.UseStaticFiles();
-
 			app.UseRouting();
-
-			app.UseAuthorization();
+			app.UseAuthentication();
 
 			app.UseEndpoints(endpoints =>
 			{

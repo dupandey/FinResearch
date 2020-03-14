@@ -26,8 +26,15 @@ using FinResearch.Models;
 #line default
 #line hidden
 #nullable disable
+#nullable restore
+#line 3 "C:\FinResearchWeb\Views\_ViewImports.cshtml"
+using FinResearch.Models.AccountViewModels;
+
+#line default
+#line hidden
+#nullable disable
     [global::Microsoft.AspNetCore.Razor.Hosting.RazorSourceChecksumAttribute(@"SHA1", @"e663485df70227115ec4f58bba66bafad99bd02e", @"/Views/Import/Index.cshtml")]
-    [global::Microsoft.AspNetCore.Razor.Hosting.RazorSourceChecksumAttribute(@"SHA1", @"3faaf773cce3914737b3a76ef26edbb3a3c28549", @"/Views/_ViewImports.cshtml")]
+    [global::Microsoft.AspNetCore.Razor.Hosting.RazorSourceChecksumAttribute(@"SHA1", @"d7c65629757e2741f005f142801ac97cbd0e9213", @"/Views/_ViewImports.cshtml")]
     public class Views_Import_Index : global::Microsoft.AspNetCore.Mvc.Razor.RazorPage<dynamic>
     {
         private static readonly global::Microsoft.AspNetCore.Razor.TagHelpers.TagHelperAttribute __tagHelperAttribute_0 = new global::Microsoft.AspNetCore.Razor.TagHelpers.TagHelperAttribute("method", "post", global::Microsoft.AspNetCore.Razor.TagHelpers.HtmlAttributeValueStyle.DoubleQuotes);
@@ -69,7 +76,7 @@ using FinResearch.Models;
 #line hidden
 #nullable disable
             WriteLiteral("\r\n");
-            __tagHelperExecutionContext = __tagHelperScopeManager.Begin("form", global::Microsoft.AspNetCore.Razor.TagHelpers.TagMode.StartTagAndEndTag, "e663485df70227115ec4f58bba66bafad99bd02e4320", async() => {
+            __tagHelperExecutionContext = __tagHelperScopeManager.Begin("form", global::Microsoft.AspNetCore.Razor.TagHelpers.TagMode.StartTagAndEndTag, "e663485df70227115ec4f58bba66bafad99bd02e4489", async() => {
                 WriteLiteral("\r\n    <input type=\"file\" name=\"file\" />\r\n    <button type=\"submit\">Upload</button>\r\n");
             }
             );

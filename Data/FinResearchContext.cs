@@ -4,16 +4,16 @@ using FinResearch.Models;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 
 namespace FinResearch.Models
 {
-    public class FinResearchContext : DbContext
+    public class FinResearchContext : IdentityDbContext<ApplicationUser>
     {
         public FinResearchContext(DbContextOptions<FinResearchContext> options)
             : base(options)
         {
         }
-
         public DbSet<Company> Companies { get; set; }
         public DbSet<Category> Categories { get; set; }
         public DbSet<LineItem> LineItems { get; set; }

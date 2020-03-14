@@ -26,8 +26,15 @@ using FinResearch.Models;
 #line default
 #line hidden
 #nullable disable
+#nullable restore
+#line 3 "C:\FinResearchWeb\Views\_ViewImports.cshtml"
+using FinResearch.Models.AccountViewModels;
+
+#line default
+#line hidden
+#nullable disable
     [global::Microsoft.AspNetCore.Razor.Hosting.RazorSourceChecksumAttribute(@"SHA1", @"d8ecc9beb1b5c7a82d0eaaa5e730f82375811b2e", @"/Views/FinanceStatements/Index.cshtml")]
-    [global::Microsoft.AspNetCore.Razor.Hosting.RazorSourceChecksumAttribute(@"SHA1", @"3faaf773cce3914737b3a76ef26edbb3a3c28549", @"/Views/_ViewImports.cshtml")]
+    [global::Microsoft.AspNetCore.Razor.Hosting.RazorSourceChecksumAttribute(@"SHA1", @"d7c65629757e2741f005f142801ac97cbd0e9213", @"/Views/_ViewImports.cshtml")]
     public class Views_FinanceStatements_Index : global::Microsoft.AspNetCore.Mvc.Razor.RazorPage<IEnumerable<FinResearch.Models.FinanceStatement>>
     {
         private static readonly global::Microsoft.AspNetCore.Razor.TagHelpers.TagHelperAttribute __tagHelperAttribute_0 = new global::Microsoft.AspNetCore.Razor.TagHelpers.TagHelperAttribute("asp-action", "Create", global::Microsoft.AspNetCore.Razor.TagHelpers.HtmlAttributeValueStyle.DoubleQuotes);
@@ -68,7 +75,7 @@ using FinResearch.Models;
 #line hidden
 #nullable disable
             WriteLiteral("\n<h1>Index</h1>\n\n<p>\n    ");
-            __tagHelperExecutionContext = __tagHelperScopeManager.Begin("a", global::Microsoft.AspNetCore.Razor.TagHelpers.TagMode.StartTagAndEndTag, "d8ecc9beb1b5c7a82d0eaaa5e730f82375811b2e4493", async() => {
+            __tagHelperExecutionContext = __tagHelperScopeManager.Begin("a", global::Microsoft.AspNetCore.Razor.TagHelpers.TagMode.StartTagAndEndTag, "d8ecc9beb1b5c7a82d0eaaa5e730f82375811b2e4662", async() => {
                 WriteLiteral("Create New");
             }
             );
@@ -108,7 +115,7 @@ using FinResearch.Models;
 #line hidden
 #nullable disable
             WriteLiteral("\n            </td>\n            <td>\n                ");
-            __tagHelperExecutionContext = __tagHelperScopeManager.Begin("a", global::Microsoft.AspNetCore.Razor.TagHelpers.TagMode.StartTagAndEndTag, "d8ecc9beb1b5c7a82d0eaaa5e730f82375811b2e6606", async() => {
+            __tagHelperExecutionContext = __tagHelperScopeManager.Begin("a", global::Microsoft.AspNetCore.Razor.TagHelpers.TagMode.StartTagAndEndTag, "d8ecc9beb1b5c7a82d0eaaa5e730f82375811b2e6775", async() => {
                 WriteLiteral("Edit");
             }
             );
@@ -139,7 +146,7 @@ using FinResearch.Models;
             Write(__tagHelperExecutionContext.Output);
             __tagHelperExecutionContext = __tagHelperScopeManager.End();
             WriteLiteral(" |\n                ");
-            __tagHelperExecutionContext = __tagHelperScopeManager.Begin("a", global::Microsoft.AspNetCore.Razor.TagHelpers.TagMode.StartTagAndEndTag, "d8ecc9beb1b5c7a82d0eaaa5e730f82375811b2e8753", async() => {
+            __tagHelperExecutionContext = __tagHelperScopeManager.Begin("a", global::Microsoft.AspNetCore.Razor.TagHelpers.TagMode.StartTagAndEndTag, "d8ecc9beb1b5c7a82d0eaaa5e730f82375811b2e8922", async() => {
                 WriteLiteral("Details");
             }
             );
@@ -170,7 +177,7 @@ using FinResearch.Models;
             Write(__tagHelperExecutionContext.Output);
             __tagHelperExecutionContext = __tagHelperScopeManager.End();
             WriteLiteral(" |\n                ");
-            __tagHelperExecutionContext = __tagHelperScopeManager.Begin("a", global::Microsoft.AspNetCore.Razor.TagHelpers.TagMode.StartTagAndEndTag, "d8ecc9beb1b5c7a82d0eaaa5e730f82375811b2e10906", async() => {
+            __tagHelperExecutionContext = __tagHelperScopeManager.Begin("a", global::Microsoft.AspNetCore.Razor.TagHelpers.TagMode.StartTagAndEndTag, "d8ecc9beb1b5c7a82d0eaaa5e730f82375811b2e11075", async() => {
                 WriteLiteral("Delete");
             }
             );

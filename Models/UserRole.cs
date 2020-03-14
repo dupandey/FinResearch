@@ -10,7 +10,7 @@ namespace FinResearch.Models
     public class UserRole
     {
         public long UserRoleId { get; set; }
-        public User User { get; set; }
+        public ApplicationUser User { get; set; }
         public long UserId { get; set; }
         public Role Role { get; set; }
         public int RoleId { get; set; }
