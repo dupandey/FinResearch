@@ -322,30 +322,30 @@ namespace FinResearch.Controllers
 					jObject.Add("Config", workSheet.Cells[i, 2].Value == null ? " " : workSheet.Cells[i, 2].Value.ToString());
 					jObject.Add("LineItem", LineItemText);
 
-					if(workSheet.Cells[i, 1].Style.Font.Bold)
-					{
-						jObject.Add("IsBold", 1);						
-					}
-					else
-					{
-						jObject.Add("IsBold", 0);
-					}
-					if (workSheet.Cells[i, 1].Style.Font.Italic)
-					{
-						jObject.Add("IsItalic", 1);
-					}
-					else
-					{
-						jObject.Add("IsItalic", 0);
-					}
-					if (workSheet.Cells[i, 1].Style.Font.UnderLine)
-					{
-						jObject.Add("IsUnderLined", 1);
-					}
-					else
-					{
-						jObject.Add("IsUnderLined", 0);
-					}
+					//if(workSheet.Cells[i, 1].Style.Font.Bold)
+					//{
+					//	jObject.Add("IsBold", 1);						
+					//}
+					//else
+					//{
+					//	jObject.Add("IsBold", 0);
+					//}
+					//if (workSheet.Cells[i, 1].Style.Font.Italic)
+					//{
+					//	jObject.Add("IsItalic", 1);
+					//}
+					//else
+					//{
+					//	jObject.Add("IsItalic", 0);
+					//}
+					//if (workSheet.Cells[i, 1].Style.Font.UnderLine)
+					//{
+					//	jObject.Add("IsUnderLined", 1);
+					//}
+					//else
+					//{
+					//	jObject.Add("IsUnderLined", 0);
+					//}
 
 					int totalCols = workSheet.Dimension.Columns;
 					for (int j = 2; j <= totalCols; j++)
@@ -413,34 +413,34 @@ namespace FinResearch.Controllers
 					{
 						continue;
 					}
-					if(workSheet.Cells[i, 2].Value != null && workSheet.Cells[i, 2].Style.Font.Bold)
-					jObject.Add("Config_bold", "bold");
-					if (workSheet.Cells[i, 2].Value != null && workSheet.Cells[i, 2].Style.Font.Italic)
-						jObject.Add("Config_italic", "italic");
+					
+					if (workSheet.Cells[i, 2].Value != null && workSheet.Cells[i, 2].Style.Font.Bold)
+					  jObject.Add("Config_bold", "bold");
+					else
+	                  jObject.Add("Config_bold", "");
+						if (workSheet.Cells[i, 2].Value != null && workSheet.Cells[i, 2].Style.Font.Italic)
+						jObject.Add("Config_font", "italic");
 					if (workSheet.Cells[i, 2].Value != null && workSheet.Cells[i, 2].Style.Font.UnderLine)
 						jObject.Add("Config_underline", "underline");
-					   jObject.Add("LineItem", LineItemText);
+					    jObject.Add("LineItem", LineItemText);
+						if(workSheet.Cells[i, 1].Style.Font.Bold)
+							jObject.Add(workSheet.Cells[i, 1].Value.ToString(), "bold");
 
-					int totalCols = workSheet.Dimension.Columns;
+						int totalCols = workSheet.Dimension.Columns;
 					for (int j = 2; j <= totalCols; j++)
 					{
 						if (j < totalCols - 1)
 						{
 							if (workSheet.Cells[1, j].Value != null && workSheet.Cells[2, j].Text != null)
 							{
-								string dataValue = "";
 								if (workSheet.Cells[i, j].Style.Font.Bold)
-									dataValue = "bold";
+									jObject.Add(workSheet.Cells[1, j].Value + "<br/>" + workSheet.Cells[2, j].Text, "bold");
 								if (workSheet.Cells[i, j].Style.Font.Italic)
-									dataValue = "italic";
+									jObject.Add(workSheet.Cells[1, j].Value + "<br/>" + workSheet.Cells[2, j].Text+"_font", "italic");
 								if (workSheet.Cells[i, j].Style.Font.UnderLine)
-									dataValue = "underline";
-								
+									 jObject.Add(workSheet.Cells[1, j].Value + "<br/>" + workSheet.Cells[2, j].Text + "_underline", "underline");
 
-								jObject.Add(workSheet.Cells[1, j].Value + "<br/>" + workSheet.Cells[2, j].Text, dataValue);
-							
-								jObject.Add(workSheet.Cells[1, j].Value + "<br/>" + workSheet.Cells[2, j].Text+"_formula", workSheet.Cells[i, j].Formula.ToString());
-								jObject.Add(workSheet.Cells[1, j].Value + "<br/>" + workSheet.Cells[2, j].Text + "_color", workSheet.Cells[i, j].Formula.ToString());
+								jObject.Add(workSheet.Cells[1, j].Value + "<br/>" + workSheet.Cells[2, j].Text + "_color", workSheet.Cells[i, j].Style.Font.Color.Theme);
 
 							}
 							
@@ -454,20 +454,15 @@ namespace FinResearch.Controllers
 							{
 								if (workSheet.Cells[i, j].Value != null)
 								{
-									string dataValue = "";
-									if (workSheet.Cells[i, j].Style.Font.Bold)
-										dataValue = "bold";
-									if (workSheet.Cells[i, j].Style.Font.Italic)
-										dataValue = "italic";
-									if (workSheet.Cells[i, j].Style.Font.UnderLine)
-										dataValue = "underline";
+										if (workSheet.Cells[i, j].Style.Font.Bold)
+											jObject.Add(workSheet.Cells[1, j].Value + "<br/>" + workSheet.Cells[2, j].Text, "bold");
+										if (workSheet.Cells[i, j].Style.Font.Italic)
+											jObject.Add(workSheet.Cells[1, j].Value + "<br/>" + workSheet.Cells[2, j].Text + "_font", "italic");
+										if (workSheet.Cells[i, j].Style.Font.UnderLine)
+											jObject.Add(workSheet.Cells[1, j].Value + "<br/>" + workSheet.Cells[2, j].Text + "_underline", "underline");
 
-
-									jObject.Add(workSheet.Cells[1, j].Value + "<br/>" + workSheet.Cells[2, j].Text , dataValue);
-
-									jObject.Add(workSheet.Cells[1, j].Value + "<br/>" + workSheet.Cells[2, j].Text + "_formula", workSheet.Cells[i, j].Formula.ToString());
-									jObject.Add(workSheet.Cells[1, j].Value + "<br/>" + workSheet.Cells[2, j].Text + "_color", workSheet.Cells[i, j].Formula.ToString());
-								}
+										jObject.Add(workSheet.Cells[1, j].Value + "<br/>" + workSheet.Cells[2, j].Text + "_color", workSheet.Cells[i, j].Style.Font.Color.Theme);
+									}
 								
 								//jObject.Add("Formula", workSheet.Cells[i, j].Formula.ToString());
 								//jObject.Add("FontColor", workSheet.Cells[i, j].Style.Font.Color.ToString());

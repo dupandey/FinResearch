@@ -33,6 +33,11 @@ namespace FinResearch.Controllers
 			var payload = _context.ISs.FirstOrDefault(x => x.CompanyId == 2)?.Payload;
 			return payload;
 		}
+		public string Gettheme()
+		{
+			var payload = _context.ThemeMasterIss.FirstOrDefault(x => x.CompanyId == 2)?.Payload;
+			return payload;
+		}
 
 		// GET: FinanceStatements/Details/5
 		public async Task<IActionResult> Details(int? id)

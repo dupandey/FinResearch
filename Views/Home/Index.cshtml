@@ -33,7 +33,21 @@
 			alert("Error occured!!")
 		}
 	});
-	debugger;
+	var themedata = [];
+	$.ajax({
+		type: "GET",
+		url: "/FinanceStatements/Gettheme",
+		dataType: "json",
+		async: false,
+		contentType: 'application/json; charset=utf-8',
+		success: function (data) {
+		themedata = data;
+		},
+		error: function () {
+			alert("Error occured!!")
+		}
+	});
+	
 	var resArr = serverdata.map(function (x) {
 		return Object.keys(x);
 	});
@@ -98,7 +112,7 @@
 		arrNested.push({ "title": numberToLetters(i) });
 	}
 
-	console.log(arrNested);
+	var filterdata = null;
 	var mytable = $('#my').jexcel({
 		csvHeaders: true,
 		minDimensions: [5, 13],
@@ -111,19 +125,44 @@
 		colHeaders: longest,
 		nestedHeaders: [arrNested],
 		updateTable: function (instance, cell, col, row, val, label, cellName) {
-			if (col > 0) {
-				if (val != '') {
-					
-					
-				}
-			}
-			if (col == 0) {
-				$(cell).css("text-align", "left");
-				if (cell.innerText.indexOf(":") >= 0) {
+			var header = $("thead tr td[data-x='" + col + "']")[0].title;
+			if (col == 1) {
+				 filterdata = themedata.find(x => x.LineItem == val);
+				if (!!filterdata && !!filterdata[val] && filterdata[val] == "bold")
 					cell.style.fontWeight = 'bold';
+				
+
+				
+			}
+			else if (col == 0) {
+				
+				if(!!filterdata && !!filterdata['Config_bold'] && filterdata['Config_bold'] == "bold")
+					 cell.style.fontWeight = 'bold';
+				
+
+			}
+			else {
+				
+				
+				if (!!filterdata && !!filterdata[header] && filterdata[header] == "bold")
+					cell.style.fontWeight = 'bold';
+				if (!!filterdata && !!filterdata[header+"_color"])
+						$(cell).css('color', 'blue');
+					
+				if (!!filterdata && !!filterdata[header+'_underline'] )
+						$(cell).css('text-decoration','underline');
+					
+			}
+
+
+				if (col == 0) {
+					$(cell).css("text-align", "left");
+					if (cell.innerText.indexOf(":") >= 0) {
+						cell.style.fontWeight = 'bold';
+					}
 				}
 			}
-		}
+		
 
 
 	});
@@ -137,11 +176,13 @@
 
 	console.log(catIndex);
 	mytable.moveColumn(catIndex, 0);
-	mytable.setWidth(0, 400);
+	mytable.setWidth(0, 250);
+	mytable.setWidth(0, 250);
 
 
 	for (var i = 1; i < longest.length; i++) {
 		mytable.setWidth(i, 100);
 	}
+
 
 </script>
