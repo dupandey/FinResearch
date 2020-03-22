@@ -14,7 +14,11 @@ namespace FinResearch.Models
         public long BalanceSheetId { get; set; }
         public int CompanyId { get; set; }
         public int CategoryId { get; set; }
-        public string Payload { get; set; }        
+        public string Payload { get; set; }
+        public string FileName { get; set; }
+        public string UserId { get; set; }
+        public bool? IsAdmin { get; set; }
+        public int? FileVersion { get; set; }
         public bool IsActive { get; set; }
         public DateTime ? CreatedDate { get; set; }
         public DateTime? ModifiedDate { get; set; }
