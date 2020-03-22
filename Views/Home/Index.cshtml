@@ -19,7 +19,7 @@
 
 <script>
 	var winWidth = $(window).width();
-	var serverdata=[];
+	var serverdata = [];
 	$.ajax({
 		type: "GET",
 		url: "/FinanceStatements/GetStatements",
@@ -41,13 +41,13 @@
 		async: false,
 		contentType: 'application/json; charset=utf-8',
 		success: function (data) {
-		themedata = data;
+			themedata = data;
 		},
 		error: function () {
 			alert("Error occured!!")
 		}
 	});
-	
+
 	var resArr = serverdata.map(function (x) {
 		return Object.keys(x);
 	});
@@ -127,39 +127,43 @@
 		updateTable: function (instance, cell, col, row, val, label, cellName) {
 			var header = $("thead tr td[data-x='" + col + "']")[0].title;
 			if (col == 1) {
-				 filterdata = themedata.find(x => x.LineItem == val);
+				filterdata = themedata.find(x => x.LineItem == val);
 				if (!!filterdata && !!filterdata[val] && filterdata[val] == "bold")
-					 cell.style.fontWeight = 'bold';
-			
+					cell.style.fontWeight = 'bold';
+
 				
-					if (!!filterdata && !!filterdata['config_bold'] && filterdata['config_bold'] == "bold") {
-						$(cell).prev().css('font-weight', 'bold');
+				if (!!filterdata && !!filterdata['config_bold'] && filterdata['config_bold'] == "bold") {
+					$(cell).prev().css('font-weight', 'bold');
 
 				}
-				
-					if (!!filterdata && !!filterdata['config_underline'] && filterdata['config_underline'] == "underline") {
-						$(cell).prev().css('text-decoration','underline');
 
-					}
-				
+				if (!!filterdata && !!filterdata['config_underline'] && filterdata['config_underline'] == "underline") {
+					$(cell).prev().css('text-decoration', 'underline');
 
-				
+				}
+
+
+
 			}
 			else if (col == 0) {
-				
-				
-				
+
+
+				$(cell).css('text-align', 'left')
 
 			}
 			else {
-				
-				
+
+
 				if (!!filterdata && !!filterdata[header] && filterdata[header] == "bold")
 					cell.style.fontWeight = 'bold';
-				if (!!filterdata && !!filterdata[header+"_color"])
-						$(cell).css('color', 'blue');
-					
-				if (!!filterdata && !!filterdata[header+'_underline'] )
+				if (!!filterdata && !!filterdata[header + "_color"])
+					$(cell).css('color', '#0033CC');
+				if (!!filterdata && !!filterdata[header + "_family"])
+					$(cell).css('font-family', 'Calibri');
+				if (!!filterdata && !!filterdata[header + "_size"])
+					$(cell).css('font-size','15px' );
+
+				if (!!filterdata && !!filterdata[header + '_underline'])
 					$(cell).css('text-decoration', 'underline');
 
 
@@ -167,15 +171,15 @@
 					var changedvalue = "(" + Math.abs(val) + ")";
 					$(cell).html(changedvalue);
 				}
-					
+
 			}
 
 
-			
 
-				
-			}
-		
+
+
+		}
+
 
 
 	});

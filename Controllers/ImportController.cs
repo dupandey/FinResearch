@@ -375,8 +375,8 @@ namespace FinResearch.Controllers
                                 {
                                     var dataValue = workSheet.Cells[i, j].Value.ToString();//data values fetch
                                                                                            //JSONString.Append("\"" + workSheet.Cells[1, j].Value + " " + workSheet.Cells[2, j].Text + "\":" + "\"" + dataValue + "\",");
-                                    jObject.Add(workSheet.Cells[1, j].Value + "<br/>" + workSheet.Cells[2, j].Text, dataValue);
-                                }
+                                    jObject.Add(workSheet.Cells[1, j].Value + "<br/>" + workSheet.Cells[2, j].Text, Convert.ToDecimal(dataValue).ToString("N", new CultureInfo("en-US")));
+								}
                                 else
                                 {
                                     //Blank 0 data value will be added
@@ -393,7 +393,7 @@ namespace FinResearch.Controllers
                                 if (workSheet.Cells[i, j].Value != null)
                                 {
                                     var dataValue = workSheet.Cells[i, j].Value.ToString();//data values fetch
-                                    jObject.Add(workSheet.Cells[1, j].Value + "<br/>" + workSheet.Cells[2, j].Text, dataValue);
+									jObject.Add(workSheet.Cells[1, j].Value + "<br/>" + workSheet.Cells[2, j].Text, Convert.ToDecimal(dataValue).ToString("N", new CultureInfo("en-US")));
                                 }
                                 else
                                 {
@@ -430,13 +430,12 @@ namespace FinResearch.Controllers
                         }
 
                         if (workSheet.Cells[i, 2].Value != null && workSheet.Cells[i, 2].Style.Font.Bold)
-                            jObject.Add("Config_bold", "bold");
-                        else
-                            jObject.Add("Config_bold", "");
+                            jObject.Add("config_bold", "bold");
+                       
                         if (workSheet.Cells[i, 2].Value != null && workSheet.Cells[i, 2].Style.Font.Italic)
-                            jObject.Add("Config_font", "italic");
+                            jObject.Add("config_font", "italic");
                         if (workSheet.Cells[i, 2].Value != null && workSheet.Cells[i, 2].Style.Font.UnderLine)
-                            jObject.Add("Config_underline", "underline");
+                            jObject.Add("config_underline", "underline");
                         jObject.Add("LineItem", LineItemText);
                         if (workSheet.Cells[i, 1].Style.Font.Bold)
                             jObject.Add(workSheet.Cells[i, 1].Value.ToString(), "bold");
