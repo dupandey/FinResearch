@@ -1,0 +1,9 @@
+C:\FinResearchWeb\Database\bin\Debug\Database.dacpac
+C:\FinResearchWeb\Database\bin\Debug\Database.dll
+C:\FinResearchWeb\Database\bin\Debug\Database.pdb
+C:\FinResearchWeb\Database\obj\Debug\Model.xml
+C:\FinResearchWeb\Database\obj\Debug\refactor.xml
+C:\FinResearchWeb\Database\obj\Debug\postdeploy.sql
+C:\FinResearchWeb\Database\obj\Debug\predeploy.sql
+C:\FinResearchWeb\Database\obj\Debug\Database.dll
+C:\FinResearchWeb\Database\obj\Debug\Database.pdb
