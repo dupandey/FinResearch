@@ -129,15 +129,25 @@
 			if (col == 1) {
 				 filterdata = themedata.find(x => x.LineItem == val);
 				if (!!filterdata && !!filterdata[val] && filterdata[val] == "bold")
-					cell.style.fontWeight = 'bold';
+					 cell.style.fontWeight = 'bold';
+			
+				
+					if (!!filterdata && !!filterdata['config_bold'] && filterdata['config_bold'] == "bold") {
+						$(cell).prev().css('font-weight', 'bold');
+
+				}
+				
+					if (!!filterdata && !!filterdata['config_underline'] && filterdata['config_underline'] == "underline") {
+						$(cell).prev().css('text-decoration','underline');
+
+					}
 				
 
 				
 			}
 			else if (col == 0) {
 				
-				if(!!filterdata && !!filterdata['Config_bold'] && filterdata['Config_bold'] == "bold")
-					 cell.style.fontWeight = 'bold';
+				
 				
 
 			}
@@ -150,17 +160,20 @@
 						$(cell).css('color', 'blue');
 					
 				if (!!filterdata && !!filterdata[header+'_underline'] )
-						$(cell).css('text-decoration','underline');
+					$(cell).css('text-decoration', 'underline');
+
+
+				if ($(cell).html().indexOf('-') > -1) {
+					var changedvalue = "(" + Math.abs(val) + ")";
+					$(cell).html(changedvalue);
+				}
 					
 			}
 
 
-				if (col == 0) {
-					$(cell).css("text-align", "left");
-					if (cell.innerText.indexOf(":") >= 0) {
-						cell.style.fontWeight = 'bold';
-					}
-				}
+			
+
+				
 			}
 		
 
