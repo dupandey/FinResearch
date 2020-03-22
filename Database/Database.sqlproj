@@ -60,5 +60,9 @@
   <ItemGroup>
     <Build Include="ThemeMasterIss.sql" />
     <Build Include="ISs.sql" />
+    <Build Include="BalanceSheets.sql" />
+    <Build Include="CashFlows.sql" />
+    <Build Include="ISNonGAAPs.sql" />
+    <Build Include="RDs.sql" />
   </ItemGroup>
 </Project>
