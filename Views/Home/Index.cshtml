@@ -168,10 +168,29 @@
 
 
 				if ($(cell).html().indexOf('-') > -1) {
-					var changedvalue = "(" + Math.abs(val) + ")";
-					$(cell).html(changedvalue);
-				}
+					if (!!filterdata && !!filterdata[header + "_isdollar"] && !!filterdata[header + "_isdollar"] == "dollar") {
+						var changedvalue = "($" + Math.abs(parseFloat(val)) + ")";
+						$(cell).html(changedvalue);
 
+					}
+					else {
+						var changedvalue = "(" + Math.abs(parseFloat(val)) + ")";
+						$(cell).html(changedvalue);
+					}
+
+				}
+				else {
+					if (!!filterdata && !!filterdata[header +'_isdollar']) {
+						
+						$(cell).html("$" + $(cell).html());
+					}
+					if (!!filterdata && !!filterdata[header +'_ispercentage']) {
+						
+						$(cell).html($(cell).html()+"%");
+					}
+
+				}
+					
 			}
 
 
