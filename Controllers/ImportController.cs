@@ -339,8 +339,6 @@ namespace FinResearch.Controllers
                     jObject.Add("Config", workSheet.Cells[i, 2].Value == null ? " " : workSheet.Cells[i, 2].Value.ToString());
                     jObject.Add("LineItem", LineItemText);
 
-                    
-
                     int totalCols = workSheet.Dimension.Columns;
                     for (int j = 2; j <= totalCols; j++)
                     {
@@ -351,16 +349,27 @@ namespace FinResearch.Controllers
                                 if (workSheet.Cells[i, j].Value != null)
                                 {
                                     var dataValue = workSheet.Cells[i, j].Value.ToString();//data values fetch
-                                                                                           //JSONString.Append("\"" + workSheet.Cells[1, j].Value + " " + workSheet.Cells[2, j].Text + "\":" + "\"" + dataValue + "\",");
-                                    jObject.Add(workSheet.Cells[1, j].Value + "<br/>" + workSheet.Cells[2, j].Text, Convert.ToDecimal(dataValue).ToString("N", new CultureInfo("en-US")));
-								}
+                                    decimal result = 0;
+                                    bool canConvert = decimal.TryParse(dataValue, out result);
+                                    if (canConvert == true)
+                                        jObject.Add(workSheet.Cells[1, j].Value + "<br/>" + workSheet.Cells[2, j].Text, Convert.ToDecimal(dataValue).ToString("N", new CultureInfo("en-US")));
+                                }
                                 else
                                 {
                                     //Blank 0 data value will be added
                                     jObject.Add(workSheet.Cells[1, j].Value + "<br/>" + workSheet.Cells[2, j].Text, 0);
                                 }
-                                //jObject.Add("Formula", workSheet.Cells[i, j].Formula.ToString());
-                                //jObject.Add("FontColor", workSheet.Cells[i, j].Style.Font.Color.ToString());
+                                if (workSheet.Cells[1, j].Value != null && workSheet.Cells[1, j].Value.ToString().Contains("E"))
+                                {
+                                    if (workSheet.Cells[i, j].Value != null && workSheet.Cells[i, j].Formula != null)
+                                    {
+                                        jObject.Add(workSheet.Cells[1, j].Value.ToString() + j.ToString() + "_Formula", workSheet.Cells[i, j].Formula.ToString());
+                                    }
+                                    else if (workSheet.Cells[i, j].Formula != null)
+                                    {
+                                        jObject.Add(workSheet.Cells[1, j].Value.ToString() + j.ToString() + "_Formula", workSheet.Cells[i, j].Formula.ToString());
+                                    }
+                                }
                             }
                         }
                         else if (j == totalCols - 1)
@@ -370,15 +379,27 @@ namespace FinResearch.Controllers
                                 if (workSheet.Cells[i, j].Value != null)
                                 {
                                     var dataValue = workSheet.Cells[i, j].Value.ToString();//data values fetch
-									jObject.Add(workSheet.Cells[1, j].Value + "<br/>" + workSheet.Cells[2, j].Text, Convert.ToDecimal(dataValue).ToString("N", new CultureInfo("en-US")));
+                                    decimal result = 0;
+                                    bool canConvert = decimal.TryParse(dataValue, out result);
+                                    if (canConvert == true)
+                                        jObject.Add(workSheet.Cells[1, j].Value + "<br/>" + workSheet.Cells[2, j].Text, Convert.ToDecimal(dataValue).ToString("N", new CultureInfo("en-US")));
                                 }
                                 else
                                 {
                                     //Blank 0 data value will be added
                                     jObject.Add(workSheet.Cells[1, j].Value + "<br/>" + workSheet.Cells[2, j].Text, 0);
                                 }
-                                //jObject.Add("Formula", workSheet.Cells[i, j].Formula.ToString());
-                                //jObject.Add("FontColor", workSheet.Cells[i, j].Style.Font.Color.ToString());
+                                if (workSheet.Cells[1, j].Value != null && workSheet.Cells[1, j].Value.ToString().Contains("E"))
+                                {
+                                    if (workSheet.Cells[i, j].Value != null && workSheet.Cells[i, j].Formula != null)
+                                    {
+                                        jObject.Add(workSheet.Cells[1, j].Value.ToString() + j.ToString() + "_Formula", workSheet.Cells[i, j].Formula.ToString());
+                                    }
+                                    else if (workSheet.Cells[i, j].Formula != null)
+                                    {
+                                        jObject.Add(workSheet.Cells[1, j].Value.ToString()+j.ToString() + "_Formula", workSheet.Cells[i, j].Formula.ToString());
+                                    }
+                                }
                             }
                         }
                     }
@@ -408,7 +429,7 @@ namespace FinResearch.Controllers
 
                         if (workSheet.Cells[i, 2].Value != null && workSheet.Cells[i, 2].Style.Font.Bold)
                             jObject.Add("config_bold", "bold");
-                       
+
                         if (workSheet.Cells[i, 2].Value != null && workSheet.Cells[i, 2].Style.Font.Italic)
                             jObject.Add("config_font", "italic");
                         if (workSheet.Cells[i, 2].Value != null && workSheet.Cells[i, 2].Style.Font.UnderLine)
@@ -433,16 +454,16 @@ namespace FinResearch.Controllers
 
                                     jObject.Add(workSheet.Cells[1, j].Value + "<br/>" + workSheet.Cells[2, j].Text + "_color", workSheet.Cells[i, j].Style.Font.Color.Rgb);
                                     jObject.Add(workSheet.Cells[1, j].Value + "<br/>" + workSheet.Cells[2, j].Text + "_size", workSheet.Cells[i, j].Style.Font.Size);
-									if (workSheet.Cells[i, j].Value!=null && workSheet.Cells[i, j].Text.ToString().Contains('$'))
-									{
-										jObject.Add(workSheet.Cells[1, j].Value + "<br/>" + workSheet.Cells[2, j].Text + "_isdollar", "dollar");
-									}
-									if (workSheet.Cells[i, j].Value != null && workSheet.Cells[i, j].Value.ToString().Contains('%'))
-									{
-										jObject.Add(workSheet.Cells[1, j].Value + "<br/>" + workSheet.Cells[2, j].Text + "_ispercentage", "percentage");
-									}
+                                    if (workSheet.Cells[i, j].Value != null && workSheet.Cells[i, j].Text.ToString().Contains('$'))
+                                    {
+                                        jObject.Add(workSheet.Cells[1, j].Value + "<br/>" + workSheet.Cells[2, j].Text + "_isdollar", "dollar");
+                                    }
+                                    if (workSheet.Cells[i, j].Value != null && workSheet.Cells[i, j].Value.ToString().Contains('%'))
+                                    {
+                                        jObject.Add(workSheet.Cells[1, j].Value + "<br/>" + workSheet.Cells[2, j].Text + "_ispercentage", "percentage");
+                                    }
 
-								}
+                                }
                             }
                             else if (j == totalCols - 1)
                             {
@@ -459,16 +480,16 @@ namespace FinResearch.Controllers
 
                                         jObject.Add(workSheet.Cells[1, j].Value + "<br/>" + workSheet.Cells[2, j].Text + "_color", workSheet.Cells[i, j].Style.Font.Color.Rgb);
                                         jObject.Add(workSheet.Cells[1, j].Value + "<br/>" + workSheet.Cells[2, j].Text + "_size", workSheet.Cells[i, j].Style.Font.Size);
-										if (workSheet.Cells[i, j].Text.ToString().Contains('$'))
-										{
-											jObject.Add(workSheet.Cells[1, j].Value + "<br/>" + workSheet.Cells[2, j].Text + "_isdollar", "dollar");
-										}
-										if (workSheet.Cells[i, j].Text.ToString().Contains('%'))
-										{
-											jObject.Add(workSheet.Cells[1, j].Value + "<br/>" + workSheet.Cells[2, j].Text + "_ispercentage", "percentage");
-										}
+                                        if (workSheet.Cells[i, j].Text.ToString().Contains('$'))
+                                        {
+                                            jObject.Add(workSheet.Cells[1, j].Value + "<br/>" + workSheet.Cells[2, j].Text + "_isdollar", "dollar");
+                                        }
+                                        if (workSheet.Cells[i, j].Text.ToString().Contains('%'))
+                                        {
+                                            jObject.Add(workSheet.Cells[1, j].Value + "<br/>" + workSheet.Cells[2, j].Text + "_ispercentage", "percentage");
+                                        }
 
-									}
+                                    }
                                 }
                             }
                         }
